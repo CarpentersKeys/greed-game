@@ -9,7 +9,9 @@ export default class _Document extends Document {
   render() {
     return (
       <Html>
-        <Head />
+        <Head>
+        <link rel="icon" href="/favicon.png" />
+        </Head>
         <body>
           <Main />
           <NextScript />
