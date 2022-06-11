@@ -1,14 +1,16 @@
 {
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3010",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
     "@mantine/core": "^4.1.4",
+    "@mantine/form": "^4.2.8",
     "@mantine/hooks": "^4.1.4",
     "@mantine/next": "^4.1.4",
+    "mongoose": "^6.3.6",
     "next": "latest",
     "react": "18.0.0",
     "react-dom": "18.0.0"
