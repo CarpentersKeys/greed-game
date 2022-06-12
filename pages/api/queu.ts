@@ -1,8 +1,8 @@
 import { HydratedDocument } from "mongoose";
 import type { NextApiRequest, NextApiResponse } from "next";
 import dbConnect from "../../lib/dbConnect";
-import Player from "../../models/player";
-import { IPlayer } from "../../models/player";
+import Player from "../../models/player/mongoose";
+import { IPlayer } from "../../models/player/types";
 
 export default async function (req: NextApiRequest, resp: NextApiResponse) {
     await dbConnect();

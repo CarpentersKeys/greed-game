@@ -4,6 +4,12 @@ import { MantineProvider } from '@mantine/core';
 import Layout from '../components/Layout';
 
 function MyApp({ Component, pageProps }: AppProps) {
+
+// player and game state context
+// player access to a game
+// game has specified stage
+// perform checks on the game via player to secure action order
+
   return (
     <MantineProvider
       withGlobalStyles
