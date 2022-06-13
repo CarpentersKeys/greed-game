@@ -17,5 +17,6 @@ export interface IPlayerModel {
 }
 
 export function isPlayer(obj: any): obj is IPlayer {
-    return '_id' in obj && 'name' in obj && 'gameRole' in obj;
+    if (!obj) { return false };
+    return '_id' in obj && 'name' in obj;
 }
