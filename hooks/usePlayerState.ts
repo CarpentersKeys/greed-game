@@ -1,6 +1,6 @@
-import { useQuery, UseQueryResult } from "react-query";
+import { EnsuredQueryKey, useQuery, UseQueryResult } from "react-query";
 import { IPlayer } from "../models/player/types"
-import { Types as MgsTypes } from 'mongoose';
+import { ObjectId } from 'mongoose';
 
 export interface usePlayerStateResult {
     isLoading: boolean;
@@ -9,11 +9,19 @@ export interface usePlayerStateResult {
 }
 
 
-export default function usePlayerState(playerId: MgsTypes.ObjectId | null): usePlayerStateResult {
-    const { isLoading, error, data } = useQuery('player', () =>
-        fetch('/api/player')
-            .then(resp => resp.json())
-    );
+export default function usePlayerState(playerId: ObjectId | null): usePlayerStateResult {
+    const { isLoading, error, data } = useQuery([playerId], async ({ queryKey }) => {
+        if(!queryKey[0]) { return;};
+
+        return fetch(`/api/player/${queryKey[0]}`)
+            .then(resp => {
+                return resp.json()
+            })
+    });
+
+    // console.log('UQisl:', isLoading)
+    // console.log('UQerr', error)
+    // console.log('UQplayerstate', data)
 
     return ({
         isLoading,
