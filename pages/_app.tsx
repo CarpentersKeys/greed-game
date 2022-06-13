@@ -2,8 +2,7 @@ import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { MantineProvider } from '@mantine/core';
 import Layout from '../components/Layout';
-import { useQuery, QueryClient, QueryClientProvider } from 'react-query';
-import usePlayerState from '../hooks/usePlayerState';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 const queryClient = new QueryClient();
 
