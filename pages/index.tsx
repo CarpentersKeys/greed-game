@@ -1,35 +1,48 @@
 import { useForm } from '@mantine/form';
 import type { NextPage } from 'next'
-import { Button, Group, Box, Text, TextInput, Checkbox } from '@mantine/core'
+import { Button, Group, Box, Text, TextInput } from '@mantine/core'
+import usePlayerState from '../hooks/usePlayerState';
+import { IPlayer, isPlayer } from '../models/player/types';
+import { useState } from 'react';
+import { HydratedDocument, ObjectId } from 'mongoose';
 
 const Home: NextPage = () => {
+  const [playerId, playerIdSet] = useState<ObjectId | null>(null);
+  const { isLoading, error, playerState } = usePlayerState(playerId);
+
   const form = useForm({
     initialValues: {
       name: '',
-      autoMatch: true,
     },
 
     validate: {
-      name: (val) => (val.length > 3 ? null : 'Invalid email'),
+      name: (val) => (val.length > 3 ? null : 'User a longer name'),
     },
   });
 
-  async function handleSubmit(values: typeof form.values): Promise<string> {
-    const { name, autoMatch } = values;
+  async function handleSubmitPlayer(values: typeof form.values): Promise<string> {
+    const { name } = values;
 
-    const newPlayer: Player = { name, autoMatch };
-    const url: string = ('/api/queu');
-    const options: RequestInit = { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(newPlayer) }
-    // api call
-    const urlResp: Response = await fetch(url, options);
-    const json: object = urlResp.ok && await urlResp.json();
-    console.log(json)
+    // submit a new player to DB
+    const newPlayer: IPlayer = { name };
+    const url: string = ('/api/player');
+    const options: RequestInit = {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(newPlayer),
+    }
+    const urlResp: Response =
+      await fetch(url, options);
+    // get a player back
+    const playerResp: HydratedDocument<IPlayer> = urlResp.ok &&
+      await urlResp.json();
 
-    // submit name to db
-    if (autoMatch) {
-      // populate list of queued users
-    } else {
-      // just grab the first user and start a game
+    if (isPlayer(playerResp)) {
+      // make sure it's a player before passing ID to our playerState fetcher
+      playerIdSet(playerResp._id as ObjectId);
+
+      // TODO: make a game request with the player ID
+      // const newGame = new Game({ players: [{ name: 'tim', }, { name: 'eric', }], })
     }
     return ''
   }
@@ -68,7 +81,7 @@ const Home: NextPage = () => {
           This is a game of greed!
         </Text>
         <Box>
-          <form onSubmit={form.onSubmit(handleSubmit)}>
+          <form onSubmit={form.onSubmit(handleSubmitPlayer)}>
             <TextInput
               required
               label='Name'
@@ -76,12 +89,12 @@ const Home: NextPage = () => {
               {...form.getInputProps('name')}
             >
             </TextInput>
-            <Checkbox
+            {/* <Checkbox
               mt="md"
               label='Automatch'
               {...form.getInputProps('autoMatch', { type: 'checkbox' })}
               required
-            />
+            /> */}
             <Group position="right" mt="md">
               <Button type="submit">Find Match</Button>
             </Group>
@@ -90,11 +103,6 @@ const Home: NextPage = () => {
       </Box>
     </Box>
   )
-}
-
-interface Player {
-  name: string,
-  autoMatch: boolean,
 }
 
 export default Home
