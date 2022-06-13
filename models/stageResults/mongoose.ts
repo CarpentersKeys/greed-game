@@ -1,30 +1,30 @@
 import { models, model, Schema } from "mongoose";
-import Player from '../player/mongoose'
+import { playerSchema } from '../player/mongoose'
 import { IStartRoundStageResult, ISetTimerStageResult, IRunTimerStageResult, IWinRoundStageResult } from './types'
 
-const startRoundStageResultSchema = new Schema({
-    players: [Player],
+export const startRoundStageResultSchema = new Schema({
+    players: [{ type: playerSchema, }],
 })
 
-const setTimerStageResultSchema = new Schema({
-    players: [Player],
+export const setTimerStageResultSchema = new Schema({
+    players: [{ type: playerSchema, }],
     timerSet: Number,
 })
 
-const runTimerStageResultSchema = new Schema({
-    players: [Player],
+export const runTimerStageResultSchema = new Schema({
+    players: [{ type: playerSchema, }],
     timeRan: Number,
 })
 
-const winRoundStageResultSchema = new Schema({
+export const winRoundStageResultSchema = new Schema({
     score: Number,
-    winner: Player,
-    loser: Player,
+    winner: { type: playerSchema },
+    loser: { type: playerSchema },
 })
 
-const startRoundStageResult = models.startRoundStageResult || model<IStartRoundStageResult>('startRoundStageResult', startRoundStageResultSchema);
-const setTimerStageResult = models.setTimerStageResult || model<ISetTimerStageResult>('setTimerStageResult', setTimerStageResultSchema);
-const runTimerStageResult = models.runTimerStageResult || model<IRunTimerStageResult>('runTimerStageResult', runTimerStageResultSchema);
-const winRoundStageResult = models.winRoundStageResult || model<IWinRoundStageResult>('WinRoundStageResult', winRoundStageResultSchema);
+const startRoundStageResult = models?.startRoundStageResult || model<IStartRoundStageResult>('startRoundStageResult', startRoundStageResultSchema);
+const setTimerStageResult = models?.setTimerStageResult || model<ISetTimerStageResult>('setTimerStageResult', setTimerStageResultSchema);
+const runTimerStageResult = models?.runTimerStageResult || model<IRunTimerStageResult>('runTimerStageResult', runTimerStageResultSchema);
+const winRoundStageResult = models?.winRoundStageResult || model<IWinRoundStageResult>('winRoundStageResult', winRoundStageResultSchema);
 
 export { startRoundStageResult, setTimerStageResult, runTimerStageResult, winRoundStageResult, }

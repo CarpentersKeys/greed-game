@@ -1,18 +1,18 @@
 import { Schema, model, models } from "mongoose";
-import Player from "../player/mongoose";
+import { Player, playerSchema } from "../player/mongoose";
 import IRoundResult from "./types";
-import { startRoundStageResult, setTimerStageResult, runTimerStageResult, winRoundStageResult, } from '../stageResults/mongoose'
+import { startRoundStageResultSchema, setTimerStageResultSchema, runTimerStageResultSchema, winRoundStageResultSchema, } from '../stageResults/mongoose'
 
 export const roundResultSchema: Schema = new Schema({
-    winner: { type: Player, required: true },
-    loser: { type: Player, required: true },
+    winner: { type: playerSchema, required: true },
+    loser: { type: playerSchema, required: true },
     score: { type: Number, required: true },
     stageResults: {
-        startRoundStage: startRoundStageResult,
-        setTimerStage: setTimerStageResult,
-        runTimerStage: runTimerStageResult,
-        winRoundStage: winRoundStageResult,
+        startRoundStage: startRoundStageResultSchema,
+        setTimerStage: setTimerStageResultSchema,
+        runTimerStage: runTimerStageResultSchema,
+        winRoundStage: winRoundStageResultSchema,
     },
 }, { timestamps: true, });
 
-export default models.RoundResult || model<IRoundResult>('RoundResult', roundResultSchema);
+export default models?.RoundResult || model<IRoundResult>('RoundResult', roundResultSchema);

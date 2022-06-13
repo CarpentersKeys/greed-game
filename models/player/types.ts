@@ -1,5 +1,4 @@
-import { Types } from "mongoose";
-import { IGame } from "../game/types";
+import { Types, ObjectId } from "mongoose";
 
 export enum gameRole {
     TimerPlayer = 'timerPlayer',
@@ -8,7 +7,15 @@ export enum gameRole {
 
 export interface IPlayer {
     name: string;
-    gameRole?: gameRole;
-    game?: IGame;
-    _id?: Types.ObjectId;
+    gameRole?: string;
+    // gameRole?: gameRole;
+    _id?: ObjectId;
 };
+
+export interface IPlayerModel {
+    new(obj: IPlayer): IPlayer;
+}
+
+export function isPlayer(obj: any): obj is IPlayer {
+    return '_id' in obj && 'name' in obj && 'gameRole' in obj;
+}

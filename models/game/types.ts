@@ -5,9 +5,13 @@ import IRoundResult from "../roundResult/types";
 export interface IGame {
     //TODO: autoMatch: 
     players: IPlayer[];
-    roundResults: IRoundResult[];
+    roundResults?: IRoundResult[];
     gameStage?: string;
     _createdAt?: Date;
     _updatedAt?: Date;
     _id?: Types.ObjectId;
 };
+
+export interface IGameModel {
+    new(obj: IGame): IGame;
+} 
