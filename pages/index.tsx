@@ -1,14 +1,17 @@
 import { useForm } from '@mantine/form';
 import type { NextPage } from 'next'
 import { Button, Group, Box, Text, TextInput } from '@mantine/core'
-import usePlayerState from '../hooks/usePlayerState';
-import { IPlayer, isPlayer } from '../models/player/types';
 import { useState } from 'react';
-import { HydratedDocument, ObjectId } from 'mongoose';
+import usePlayer from '../hooks/usePlayer';
 
 const Home: NextPage = () => {
-  const [playerId, playerIdSet] = useState<ObjectId | null>(null);
-  const { isLoading, error, playerState } = usePlayerState(playerId);
+  // TODO: handle the no value states
+  // TODO: make a game request with the player ID
+  const [nameSubmission, nameSubmissionSet] = useState<string | undefined>();
+  const { data: newPlayer, isLoading: newPlayerLoading, error: newPlayerError, } = usePlayer('new', nameSubmission);
+  const { data: playerState, isLoading: playerStateLoading, error: playerStateError, } = usePlayer('state', newPlayer?._id);
+
+  console.log('index plyerState', playerState);
 
   const form = useForm({
     initialValues: {
@@ -20,31 +23,9 @@ const Home: NextPage = () => {
     },
   });
 
-  async function handleSubmitPlayer(values: typeof form.values): Promise<string> {
-    const { name } = values;
-
-    // submit a new player to DB
-    const newPlayer: IPlayer = { name };
-    const url: string = ('/api/player');
-    const options: RequestInit = {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(newPlayer),
-    }
-    const urlResp: Response =
-      await fetch(url, options);
-    // get a player back
-    const playerResp: HydratedDocument<IPlayer> = urlResp.ok &&
-      await urlResp.json();
-
-    if (isPlayer(playerResp)) {
-      // make sure it's a player before passing ID to our playerState fetcher
-      playerIdSet(playerResp._id as ObjectId);
-
-      // TODO: make a game request with the player ID
-      // const newGame = new Game({ players: [{ name: 'tim', }, { name: 'eric', }], })
-    }
-    return ''
+  // destructuring types https://flaviocopes.com/typescript-object-destructuring/
+  function handleSubmitPlayer({ name }: { name: string }): void {
+    nameSubmissionSet(name);
   }
 
   return (
@@ -85,8 +66,8 @@ const Home: NextPage = () => {
             <TextInput
               required
               label='Name'
-              placeholder='your temporary name'
-              {...form.getInputProps('name')}
+              placeholder='your name for this match'
+              {...form.getInputProps('name')} // interesting pattern, returns value, onChange and error
             >
             </TextInput>
             {/* <Checkbox
