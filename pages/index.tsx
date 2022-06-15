@@ -1,88 +1,35 @@
-import { useForm } from '@mantine/form';
 import type { NextPage } from 'next'
-import { Button, Group, Box, Text, TextInput } from '@mantine/core'
+import { Box, Text } from '@mantine/core'
 import { useState } from 'react';
 import usePlayer from '../hooks/usePlayer';
+import NameEntry from '../components/session/nameEntry';
+import EndSessionButton from '../components/session/endSession';
+
 
 const Home: NextPage = () => {
-  // TODO: handle the no value states
   // TODO: make a game request with the player ID
   const [nameSubmission, nameSubmissionSet] = useState<string | undefined>();
+  // submit a new player to the server
   const { data: newPlayer, isLoading: newPlayerLoading, error: newPlayerError, } = usePlayer('new', nameSubmission);
-  const { data: playerState, isLoading: playerStateLoading, error: playerStateError, } = usePlayer('state', newPlayer?._id);
+  // subscribe to that player for state updates
+  const {
+    data: playerState,
+    isLoading: playerStateLoading,
+    error: playerStateError,
+    remove,
+  } = usePlayer('state', newPlayer?._id);
 
-  console.log('index plyerState', playerState);
+  console.log(playerState)
 
-  const form = useForm({
-    initialValues: {
-      name: '',
-    },
-
-    validate: {
-      name: (val) => (val.length > 3 ? null : 'User a longer name'),
-    },
-  });
-
-  // destructuring types https://flaviocopes.com/typescript-object-destructuring/
-  function handleSubmitPlayer({ name }: { name: string }): void {
-    nameSubmissionSet(name);
+  function endSession(): void {
+    remove();
+    nameSubmissionSet(undefined);
   }
 
   return (
-    <Box
-      component="main"
-      sx={{
-        paddingLeft: '2rem',
-        paddingRight: '2rem',
-      }}
-    >
-      <Box
-        component="main"
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          paddingTop: '2rem',
-          paddingBottom: '2rem',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Text
-          sx={{
-            color: '#0070f3',
-            fontSize: '2rem',
-            '@media (min-width: 800px)': {
-              fontSize: '3rem',
-            },
-            fontWeight: 'bold',
-            textAlign: 'center',
-          }}
-        >
-          This is a game of greed!
-        </Text>
-        <Box>
-          <form onSubmit={form.onSubmit(handleSubmitPlayer)}>
-            <TextInput
-              required
-              label='Name'
-              placeholder='your name for this match'
-              {...form.getInputProps('name')} // interesting pattern, returns value, onChange and error
-            >
-            </TextInput>
-            {/* <Checkbox
-              mt="md"
-              label='Automatch'
-              {...form.getInputProps('autoMatch', { type: 'checkbox' })}
-              required
-            /> */}
-            <Group position="right" mt="md">
-              <Button type="submit">Find Match</Button>
-            </Group>
-          </form>
-        </Box>
-      </Box>
-    </Box>
+    <>
+        {!playerState ? <NameEntry nameSubmissionSet={nameSubmissionSet} />: <EndSessionButton endSession={endSession}/>}
+    </>
   )
 }
 

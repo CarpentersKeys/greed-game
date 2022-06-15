@@ -19,9 +19,7 @@ export default function usePlayer(endPoint: string, postString: string | ObjectI
     ], postFetch,
         {
             enabled,
-            onSuccess: (data) => {
-                narrowToPlayer(data);
-            },
+            onSuccess: (data) => narrowToPlayer(data),
         }
     );
 };

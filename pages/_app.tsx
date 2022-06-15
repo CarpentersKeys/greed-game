@@ -1,15 +1,12 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { MantineProvider } from '@mantine/core';
-import Layout from '../components/Layout';
-import { QueryClient, QueryClientProvider,  } from 'react-query';
+import Layout from '../components/layout/layout';
+import { QueryClient, QueryClientProvider, } from 'react-query';
 
 const queryClient = new QueryClient();
 
 function MyApp({ Component, pageProps }: AppProps) {
-
-
-
   // player and game state context
   // player access to a game
   // game has specified stage
