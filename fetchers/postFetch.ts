@@ -1,8 +1,8 @@
 import { IPlayer } from "../models/player/types";
 import { QueryKey } from "react-query";
-import { Schema, ObjectId as IObjectId } from "mongoose";
+import { Schema, ObjectId as IObjectId, ObjectId } from "mongoose";
 
-interface IPostObj {
+export interface IPostObj {
     endPoint: string;
     postString: string | IObjectId;
 }
@@ -27,7 +27,7 @@ function narrowToObj(sth: unknown): IPostObj {
     throw new Error('3must give postFetch an IPostOBj via useQuery');
 }
 
-export default async function postFetch({ queryKey }: { queryKey: QueryKey }): Promise<IPlayer> {
+export default async function postFetch({ queryKey }: { queryKey: QueryKey }): Promise<IPlayer | ObjectId> {
     const _key = queryKey[0];
 
     const postObj = narrowToObj(queryKey[1]);

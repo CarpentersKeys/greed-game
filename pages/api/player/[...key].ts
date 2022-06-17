@@ -13,7 +13,7 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
             const newPlayer: HydratedDocument<IPlayer> = new Player({ name: postString});
             const savedPlayer = await newPlayer.save();
             if (savedPlayer) {
-                return resp.status(200).json(newPlayer);
+                return resp.status(200).json(newPlayer._id);
             } else {
                 return resp.status(500);
             };

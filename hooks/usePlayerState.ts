@@ -8,9 +8,10 @@ import { IPlayer, narrowToPlayer } from "../models/player/types";
  * @param playerId 
  * @returns UseQueryResult<IPlayer>
  */
-export default function usePlayerState(playerId: string | ObjectId | undefined,): UseQueryResult<IPlayer> {
-    console.log('playertId',playerId)
-    return useQuery([
+
+export default function usePlayerState(playerId: ObjectId | undefined | null) {
+    console.log('playertId', playerId)
+    const { data: playerState, ...rest } = useQuery([
         'player',
         { endPoint: 'getState', postString: playerId, }
     ], postFetch,
@@ -26,4 +27,10 @@ export default function usePlayerState(playerId: string | ObjectId | undefined,)
             },
         }
     );
+
+    type UseNewPlayerResult = UseQueryResult & {
+        playerState: IPlayer
+    }
+
+    return<UseNewPlayerResult> { playerState, ...rest };
 };

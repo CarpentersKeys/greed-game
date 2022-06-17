@@ -4,7 +4,7 @@ import { MantineProvider } from '@mantine/core';
 import Layout from '../components/layout/layout';
 import { QueryClient, QueryClientProvider, } from 'react-query';
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
 function MyApp({ Component, pageProps }: AppProps) {
   // player and game state context

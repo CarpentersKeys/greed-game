@@ -1,31 +1,38 @@
 import { TextInput, Group, Button } from "@mantine/core";
 import { useForm } from "@mantine/form";
+import { SyntheticEvent, useState } from "react";
+import { MutateFunction, QueryKey, UseMutationResult } from "react-query";
+// import useNewPlayer from "../../hooks/useNewPlayer";
 
 interface INameEntryProps {
-    nameSubmissionSet: (name: string) => void;
+    newPlayerFromName: (name: string) => void;
 }
-export default function NameEntry({ nameSubmissionSet }: INameEntryProps) {
-    const form = useForm({
-        initialValues: {
-            name: '',
-        },
 
-        validate: {
-            name: (val) => (val.length > 3 ? null : 'User a longer name'),
-        },
-    });
-    // destructuring types https://flaviocopes.com/typescript-object-destructuring/
-    function handleSubmitPlayer({ name }: { name: string }): void {
-        nameSubmissionSet(name);
+export default function NameEntry({ newPlayerFromName }: INameEntryProps) {
+    const [name, nameSet] = useState('');
+    const [errorMessage, errorMessageSet] = useState<string | null>(null);
+
+    function handleSubmitPlayer(e: React.SyntheticEvent) {
+        e.preventDefault();
+        const isValid = (name.length > 3 ? true : null)
+        if (isValid) {
+            newPlayerFromName(name);
+            errorMessageSet(null);
+        } else {
+            errorMessageSet('use a longer name')
+        }
     }
+
     return (
         <>
-            <form onSubmit={form.onSubmit(handleSubmitPlayer)}>
+            <form onSubmit={handleSubmitPlayer}>
                 <TextInput
                     required
                     label='Name'
+                    error={errorMessage}
                     placeholder='your name for this match'
-                    {...form.getInputProps('name')} // interesting pattern, returns value, onChange and error
+                    value={name}
+                    onChange={e => nameSet(e.target.value)}
                 >
                 </TextInput>
                 {/* <Checkbox
