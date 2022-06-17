@@ -3,6 +3,7 @@ import { Player, playerSchema } from "../player/mongoose";
 import IRoundResult from "./types";
 import { startRoundStageResultSchema, setTimerStageResultSchema, runTimerStageResultSchema, winRoundStageResultSchema, } from '../stageResults/mongoose'
 
+// REMEMBER TO RESTART SEVER IF YOU CHANGE THE SCHEMA
 export const roundResultSchema: Schema = new Schema({
     winner: { type: playerSchema, required: true },
     loser: { type: playerSchema, required: true },
@@ -13,6 +14,7 @@ export const roundResultSchema: Schema = new Schema({
         runTimerStage: runTimerStageResultSchema,
         winRoundStage: winRoundStageResultSchema,
     },
+    type: {type: String, default: 'RoundResult', immutable: true},
 }, { timestamps: true, });
 
 export default models?.RoundResult || model<IRoundResult>('RoundResult', roundResultSchema);

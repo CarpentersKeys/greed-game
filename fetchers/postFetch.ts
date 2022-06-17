@@ -23,6 +23,7 @@ function narrowToObj(sth: unknown): IPostObj {
             return probably;
         }
     }
+    console.error('error log inside narrowToObj', sth)
     throw new Error('3must give postFetch an IPostOBj via useQuery');
 }
 
@@ -34,7 +35,10 @@ export default async function postFetch({ queryKey }: { queryKey: QueryKey }): P
 
     const urlResp: Response =
         await fetch(`api/${_key}/${JSON.stringify(postObj)}`);
-
+    if (!urlResp.ok) {
+        const err = await urlResp.json();
+        console.error(err);
+    }
     // get a result back
     return (urlResp.ok && await urlResp.json());
 }

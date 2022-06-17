@@ -5,6 +5,7 @@ import { IPlayer } from "../player/types";
  * @interface IStartRoundStageResult {Object} expected return of @link {startRoundStageResult}
  */
 export interface IStartRoundStageResult {
+    type: string;
     /** two player objects, one greedy, one timer*/
     players: [IPlayer, IPlayer]
 }
@@ -14,6 +15,7 @@ export interface IStartRoundStageResult {
  * @interface ISetTimerStageResult {Object} expected return of @link {setTimerStageResult}
  */
 export interface ISetTimerStageResult {
+    type: string;
     /** two player objects, one greedy, one timer*/
     players: [IPlayer, IPlayer]
     /** time in ms */
@@ -26,6 +28,7 @@ export interface ISetTimerStageResult {
  * @interface IRunTimerStageResult {Object} expected return of @link {runTimerStageResult}
  */
 export interface IRunTimerStageResult {
+    type: string;
     /** two player objects, one greedy, one timer*/
     players: [IPlayer, IPlayer]
     /** elapsed time in ms */
@@ -38,6 +41,7 @@ export interface IRunTimerStageResult {
  * @interface IWinRoundStageResult {Object} expected return of @link {winRoundStageResult}
  */
 export interface IWinRoundStageResult {
+    type: string;
     /** two player objects, one greedy, one timer*/
     score: number;
     winner: IPlayer;

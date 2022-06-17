@@ -4,14 +4,13 @@ import dbConnect from "../../../lib/dbConnect";
 import { Player } from "../../../models/player/mongoose";
 import { IPlayer } from "../../../models/player/types";
 
-
 export default async function (req: NextApiRequest, resp: NextApiResponse) {
     await dbConnect();
     const { endPoint, postString } = JSON.parse(req.query.key[0])
 
     switch (endPoint) {
         case 'new':
-            const newPlayer: HydratedDocument<IPlayer> = new Player({ name: postString });
+            const newPlayer: HydratedDocument<IPlayer> = new Player({ name: postString});
             const savedPlayer = await newPlayer.save();
             if (savedPlayer) {
                 return resp.status(200).json(newPlayer);
@@ -19,7 +18,7 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
                 return resp.status(500);
             };
             break;
-        case 'state':
+        case 'getState':
             const playerState =
                 await Player.findById<Query<IPlayer, IPlayer>>(postString);
 

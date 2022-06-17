@@ -1,13 +1,25 @@
 import { Schema, model, models } from "mongoose";
-import { Player, playerSchema } from "../player/mongoose";
+import { playerSchema } from "../player/mongoose";
+import { IPlayer } from "../player/types";
 import { roundResultSchema } from "../roundResult/mongoose";
-import { IGameModel } from "./types";
+import { IGame } from "./types";
 
-export const gameSchema: Schema = new Schema({
-    players: { type: [playerSchema], required: true },
+// REMEMBER TO RESTART SEVER IF YOU CHANGE THE SCHEMA
+export const gameSchema: Schema = new Schema<IGame>({
+    name: String,
+    players: {
+        type: [playerSchema],
+        required: true,
+        validate: (players: IPlayer[]) => players.length <= 2,
+    },
+    isOpen: { type: Boolean, default: true, required: true},
+    type: { type: String, default: 'Game', immutable: true, required: true },
     //TODO: autoMatch: 
-    roundResults: { type: [roundResultSchema], required: false },
-    gameStage: String,
-}, { timestamps: true, });
+    roundResults: [roundResultSchema],
+    //TODO: ENUM  to types of game stage
+    gameStage: {type: String, default: 'matching', required: true},
+}, {
+    timestamps: true,
+});
 
-export const Game = (models?.Game || model('Game', gameSchema)) as IGameModel;
+export const Game = (models?.Game || model<IGame>('Game', gameSchema)) /*as IGameModel*/;
