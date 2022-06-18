@@ -14,8 +14,10 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
     await dbConnect();
     const { endPoint, postData } = JSON.parse(req.query.id[0])
 
+    // console.log('ep', endPoint)
+    // console.log('pd', postData)
     switch (endPoint) {
-        case 'get':
+        case 'joinOrCreate':
             // get player
             if (!isObjectId(postData)) {
                 return resp.status(500)
@@ -34,7 +36,7 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
             const openGame = await findOpenGame(); // defined below
 
             if (openGame) {
-                const newPlayers = [...openGame.players, player];
+                const newPlayers = [...openGame.players, player._id];
                 const update = {
                     players: newPlayers,
                     isOpen: false,
@@ -49,7 +51,7 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
                 }
             } else {
                 // make new game
-                const newGame: HydratedDocument<IGame> = new Game({ players: [player], isOpen: true }); // TODO
+                const newGame: HydratedDocument<IGame> = new Game({ players: [player._id], isOpen: true }); // TODO
                 const savedGame = await newGame.save();
                 if (savedGame) {
                     console.log('made a new game')

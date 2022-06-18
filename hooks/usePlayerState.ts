@@ -1,7 +1,7 @@
 import { useQuery, UseQueryResult } from "react-query";
 import postFetch from "../fetchers/postFetch";
 import { IPlayer } from "../models/player/types";
-import { ObjectId, TObjectId, narrowToPlayer } from "../models/typeCheckers";
+import { TObjectId, narrowToPlayer } from "../models/typeCheckers";
 
 /**
  * continuously fetches for playerState
@@ -21,7 +21,7 @@ export default function usePlayerState(playerId: TObjectId | undefined | null) {
                 try {
                     narrowToPlayer(data);
                 } catch (err) {
-                    console.error(`error in useNewPlayer \nendpoint: 'getState'\nplayerId:${playerId}name\n${err}`);
+                    console.error(`error in usePlayerState \nendpoint: 'stateQuery'\nplayerId:${playerId}name\n${err}`);
                 }
             },
         }

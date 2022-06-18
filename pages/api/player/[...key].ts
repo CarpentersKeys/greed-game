@@ -12,7 +12,8 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
 
     switch (endPoint) {
         case 'new':
-            const newPlayer: HydratedDocument<IPlayer> = new Player({ name: postData});
+            {
+                const newPlayer: HydratedDocument<IPlayer> = new Player({ name: postData });
             const savedPlayer = await newPlayer.save();
             if (savedPlayer) {
                 return resp.status(200).json(newPlayer._id);
@@ -24,12 +25,11 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
             }
         case 'stateQuery':
             {
-                if (isObjectId(postData)) {
+                if (!isObjectId(postData)) {
                     return resp.status(500)
                         .json({ errorMessage: `from /api/player case: 'stateQuery'\npostData not an ObjectId ${postData}` });
                 }
                 const playerId = postData;
-
             const playerState =
                     await Player.findById<Query<IPlayer, IPlayer>>(playerId);
 
@@ -38,22 +38,21 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
                     .json(playerState);
             } else {
                 return resp.status(500)
-                        .json({ errorMessage: `from /api/player case: 'getState'\nfailed to return a player from db: \nreturned${playerState}\nId tried: ${playerId}` });
+                        .json({ errorMessage: `from /api/player case: 'stateQuery'\nfailed to return a player from db: \nreturned${playerState}\nId tried: ${playerId}` });
             };
             break;
             }
         case 'endSession':
             {
-            if (isObjectId(postData)) {
+                if (!isObjectId(postData)) {
                 return resp.status(500)
                     .json({ errorMessage: `from /api/player case: 'endSession'\npostData not an ObjectId ${postData}` });
             }
                 const playerId = postData;
 
         default:
-            resp.setHeader('Allow', ['GET', 'PUT']);
             resp.status(405).end(`endPoint ${endPoint} Not Allowed`);
-    };
+    }
 };
 
 // TODO: fix this embarassing mess
