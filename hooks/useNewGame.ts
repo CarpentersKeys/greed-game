@@ -1,17 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useMutation } from "react-query";
-import { ObjectId, TObjectId } from "../models/typeCheckers";
-
-async function mutationFn(playerId: ObjectId) {
-    const postObj = { endPoint: 'get', postData: playerId };
-    const resp = await fetch(`/api/game/${JSON.stringify(postObj)}`);
-    if (resp.ok) {
-        return await resp.json();
-    } else {
-        const problem = await resp.text()
-        throw new Error(`new game mutation got a bad response back: raw:${problem}`);
-    };
-}
+import makeMutationFn from "../fetchers/makeMutationFn";
+import { TObjectId } from "../models/typeCheckers";
 
 export default function useNewGame(newPlayerId: TObjectId | undefined | null) {
     const playerId = useRef<TObjectId | null>(null);
@@ -31,7 +21,7 @@ export default function useNewGame(newPlayerId: TObjectId | undefined | null) {
         data: newGameId,
         mutate: submitNewGame,
         ...rest
-    } = useMutation<TObjectId, unknown, TObjectId, unknown>(mutationFn);
+    } = useMutation<TObjectId, unknown, TObjectId, unknown>(makeMutationFn('game', 'joinOrCreate'));
 
     return { newGameId, gameReset, submitNewGame, ...rest };
 }

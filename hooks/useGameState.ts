@@ -11,7 +11,7 @@ import { ObjectId, TObjectId } from "../models/typeCheckers";
 export default function useGameState(gameId: TObjectId | undefined | null) {
     const { data: gameState, ...rest } = useQuery([
         'game',
-        { endPoint: 'state', postData: gameId, }
+        { endPoint: 'stateQuery', postData: gameId, }
     ], postFetch,
         {
             enabled: !!gameId,
@@ -26,5 +26,5 @@ export default function useGameState(gameId: TObjectId | undefined | null) {
         }
     );
 
-    return{ gameState, ...rest };
+    return { gameState, ...rest };
 };

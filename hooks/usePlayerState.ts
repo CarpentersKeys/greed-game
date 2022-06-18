@@ -12,7 +12,7 @@ import { ObjectId, TObjectId, narrowToPlayer } from "../models/typeCheckers";
 export default function usePlayerState(playerId: TObjectId | undefined | null) {
     const { data: playerState, ...rest } = useQuery([
         'player',
-        { endPoint: 'getState', postData: playerId, }
+        { endPoint: 'stateQuery', postData: playerId, }
     ], postFetch,
         {
             enabled: !!playerId,
@@ -31,5 +31,5 @@ export default function usePlayerState(playerId: TObjectId | undefined | null) {
         playerState: IPlayer
     }
 
-    return<UseNewPlayerResult> { playerState, ...rest };
+    return <UseNewPlayerResult>{ playerState, ...rest };
 };
