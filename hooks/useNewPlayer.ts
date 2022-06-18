@@ -1,5 +1,6 @@
-import { ObjectId } from "mongoose";
 import { useMutation } from "react-query";
+import { ObjectId, TObjectId } from "../models/typeCheckers";
+
 /**
  * fetches to the player/[...key] endpoint and registers a new player
  * @param name 
@@ -22,7 +23,7 @@ export default function useNewPlayer() {
         data: newPlayerId,
         mutate: submitNewPlayer,
         ...rest
-    } = useMutation<ObjectId, unknown, string, unknown>(mutationFn);
+    } = useMutation<TObjectId, unknown, string, unknown>(mutationFn);
 
     return { playerReset, newPlayerId, submitNewPlayer, ...rest };
 };

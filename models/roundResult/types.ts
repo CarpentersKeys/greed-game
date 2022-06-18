@@ -1,6 +1,6 @@
-import { Types } from "mongoose";
 import { IPlayer } from "../player/types";
 import { IStartRoundStageResult, ISetTimerStageResult, IRunTimerStageResult, IWinRoundStageResult } from "../stageResults/types";
+import { TObjectId } from "../typeCheckers";
 
 export default interface IRoundResult {
     type: string;
@@ -13,7 +13,7 @@ export default interface IRoundResult {
         runTimerStage: IRunTimerStageResult;
         winRoundStage: IWinRoundStageResult;
     };
-    _id?: Types.ObjectId;
+    _id?: TObjectId;
     _createdAt?: Date;
     _updatedAt?: Date;
 };

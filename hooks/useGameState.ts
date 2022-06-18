@@ -1,15 +1,14 @@
-import { useQuery, UseQueryResult } from "react-query";
+import { useQuery } from "react-query";
 import postFetch from "../fetchers/postFetch";
-import { ObjectId } from "mongoose";
-import { IGame, narrowToGame } from "../models/game/types";
+import { narrowToGame } from "../models/typeCheckers";
+import { ObjectId, TObjectId } from "../models/typeCheckers";
 
 /**
  * continuously fetches for gameState
  * @param gameId
  * @returns UseQueryResult<IGame>
  */
-export default function useGameState(gameId: ObjectId | undefined | null) {
-    console.log('gameId', gameId)
+export default function useGameState(gameId: TObjectId | undefined | null) {
     const { data: gameState, ...rest } = useQuery([
         'game',
         { endPoint: 'state', postData: gameId, }

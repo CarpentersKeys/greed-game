@@ -1,8 +1,10 @@
-import { HydratedDocument, Query } from "mongoose";
+import { HydratedDocument, Query, Schema } from "mongoose";
 import type { NextApiRequest, NextApiResponse } from "next";
 import dbConnect from "../../../lib/dbConnect";
+import { Game } from "../../../models/game/mongoose";
 import { Player } from "../../../models/player/mongoose";
 import { IPlayer } from "../../../models/player/types";
+import { isObjectId } from "../../../models/typeCheckers";
 
 export default async function (req: NextApiRequest, resp: NextApiResponse) {
     await dbConnect();

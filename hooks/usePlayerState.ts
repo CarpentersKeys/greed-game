@@ -1,7 +1,7 @@
 import { useQuery, UseQueryResult } from "react-query";
 import postFetch from "../fetchers/postFetch";
-import { ObjectId } from "mongoose";
-import { IPlayer, narrowToPlayer } from "../models/player/types";
+import { IPlayer } from "../models/player/types";
+import { ObjectId, TObjectId, narrowToPlayer } from "../models/typeCheckers";
 
 /**
  * continuously fetches for playerState
@@ -9,8 +9,7 @@ import { IPlayer, narrowToPlayer } from "../models/player/types";
  * @returns UseQueryResult<IPlayer>
  */
 
-export default function usePlayerState(playerId: ObjectId | undefined | null) {
-    console.log('playertId', playerId)
+export default function usePlayerState(playerId: TObjectId | undefined | null) {
     const { data: playerState, ...rest } = useQuery([
         'player',
         { endPoint: 'getState', postData: playerId, }

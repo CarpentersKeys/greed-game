@@ -1,14 +1,13 @@
 import { IPlayer } from "../models/player/types";
 import { QueryKey } from "react-query";
-import { Schema, ObjectId as IObjectId, ObjectId } from "mongoose";
+import { isObjectId, ObjectId, TObjectId } from "../models/typeCheckers";
 
 export interface IPostObj {
     endPoint: string;
-    postData: string | IObjectId;
+    postData: string | TObjectId;
 }
 
 function narrowToObj(sth: unknown): IPostObj {
-    const ObjectId = Schema.Types.ObjectId;
     if (typeof sth !== 'object'
         || sth === null
     ) {
@@ -18,8 +17,8 @@ function narrowToObj(sth: unknown): IPostObj {
         const probably = sth as IPostObj;
         if (typeof probably.endPoint !== 'string') { throw new Error('method not string'); }
         const isString = typeof probably.postData === 'string';
-        const isObjectId = probably.postData instanceof ObjectId;
-        if (isString || isObjectId) {
+        const isObjId = isObjectId(probably.postData);
+        if (isString || isObjId) {
             return probably;
         }
     }
@@ -27,7 +26,7 @@ function narrowToObj(sth: unknown): IPostObj {
     throw new Error('3must give postFetch an IPostOBj via useQuery');
 }
 
-export default async function postFetch({ queryKey }: { queryKey: QueryKey }): Promise<IPlayer | ObjectId> {
+export default async function postFetch({ queryKey }: { queryKey: QueryKey }): Promise<IPlayer | TObjectId> {
     const _key = queryKey[0];
 
     const postObj = narrowToObj(queryKey[1]);

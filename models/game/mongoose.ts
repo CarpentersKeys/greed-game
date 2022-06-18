@@ -1,23 +1,23 @@
 import { Schema, model, models } from "mongoose";
-import { playerSchema } from "../player/mongoose";
-import { IPlayer } from "../player/types";
 import { roundResultSchema } from "../roundResult/mongoose";
 import { IGame } from "./types";
+import { ObjectId, TObjectId } from "../typeCheckers";
+
 
 // REMEMBER TO RESTART SEVER IF YOU CHANGE THE SCHEMA
 export const gameSchema: Schema = new Schema<IGame>({
     name: String,
     players: {
-        type: [playerSchema],
+        type: [ObjectId],
         required: true,
-        validate: (players: IPlayer[]) => players.length <= 2,
+        validate: (players: TObjectId[]) => players.length <= 2,
     },
-    isOpen: { type: Boolean, default: true, required: true},
+    isOpen: { type: Boolean, default: true, required: true },
     type: { type: String, default: 'Game', immutable: true, required: true },
     //TODO: autoMatch: 
     roundResults: [roundResultSchema],
     //TODO: ENUM  to types of game stage
-    gameStage: {type: String, default: 'matching', required: true},
+    gameStage: { type: String, default: 'matching', required: true },
 }, {
     timestamps: true,
 });

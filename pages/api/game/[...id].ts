@@ -1,10 +1,12 @@
-import { HydratedDocument, Query } from "mongoose";
+import { HydratedDocument, Query, Schema } from "mongoose";
 import type { NextApiRequest, NextApiResponse } from "next";
 import dbConnect from "../../../lib/dbConnect";
 import { Game } from "../../../models/game/mongoose";
-import { IGame, narrowToGame } from "../../../models/game/types";
+import { IGame } from "../../../models/game/types";
 import { Player } from "../../../models/player/mongoose";
 import { IPlayer } from "../../../models/player/types";
+import { isObjectId } from "../../../models/typeCheckers";
+import { narrowToGame } from "../../../models/typeCheckers";
 
 //TODO method to prevent simultaneous joins resulting in more than 2 players in the game
 //TODO when ending session kill all open games
@@ -15,6 +17,8 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
     switch (endPoint) {
         case 'get':
             // get player
+            console.log('pdio', isObjectId(postData))
+            if (!isObjectId(postData)) {
             const player =
                 await Player.findById<Query<IPlayer, IPlayer>>(postData);
             if (!player) {
@@ -80,7 +84,7 @@ async function findOpenGame(attempt = 0): Promise<IGame | null> {
 
     const isValid = openGame.players
         // TODO: standardized isPlayer()
-        .filter((player: IPlayer) => player.type === 'Player')
+        .filter(playerId => isObjectId(playerId))
         .length === 1;
 
     if (!isValid) {

@@ -1,7 +1,6 @@
-import { ObjectId } from "mongoose";
 import { useEffect, useRef } from "react";
 import { useMutation } from "react-query";
-import { IGame } from "../models/game/types";
+import { ObjectId, TObjectId } from "../models/typeCheckers";
 
 async function mutationFn(playerId: ObjectId) {
     const postObj = { endPoint: 'get', postData: playerId };
@@ -14,8 +13,8 @@ async function mutationFn(playerId: ObjectId) {
     };
 }
 
-export default function useNewGame(newPlayerId: ObjectId | undefined | null) {
-    const playerId = useRef<ObjectId | null>(null);
+export default function useNewGame(newPlayerId: TObjectId | undefined | null) {
+    const playerId = useRef<TObjectId | null>(null);
     useEffect(() => {
         if (playerId.current !== newPlayerId) {
             if (newPlayerId) {
@@ -32,7 +31,7 @@ export default function useNewGame(newPlayerId: ObjectId | undefined | null) {
         data: newGameId,
         mutate: submitNewGame,
         ...rest
-    } = useMutation<ObjectId, unknown, ObjectId, unknown>(mutationFn);
+    } = useMutation<TObjectId, unknown, TObjectId, unknown>(mutationFn);
 
     return { newGameId, gameReset, submitNewGame, ...rest };
 }
