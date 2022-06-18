@@ -4,7 +4,7 @@ import { Schema, ObjectId as IObjectId, ObjectId } from "mongoose";
 
 export interface IPostObj {
     endPoint: string;
-    postString: string | IObjectId;
+    postData: string | IObjectId;
 }
 
 function narrowToObj(sth: unknown): IPostObj {
@@ -14,11 +14,11 @@ function narrowToObj(sth: unknown): IPostObj {
     ) {
         throw new Error('1must give postFetch an IPostOBj via useQuery');
     };
-    if ('endPoint' in sth && 'postString' in sth) {
+    if ('endPoint' in sth && 'postData' in sth) {
         const probably = sth as IPostObj;
         if (typeof probably.endPoint !== 'string') { throw new Error('method not string'); }
-        const isString = typeof probably.postString === 'string';
-        const isObjectId = probably.postString instanceof ObjectId;
+        const isString = typeof probably.postData === 'string';
+        const isObjectId = probably.postData instanceof ObjectId;
         if (isString || isObjectId) {
             return probably;
         }
@@ -31,7 +31,7 @@ export default async function postFetch({ queryKey }: { queryKey: QueryKey }): P
     const _key = queryKey[0];
 
     const postObj = narrowToObj(queryKey[1]);
-    // const { endPoint, postString } = postObj;
+    // const { endPoint, postData} = postObj;
 
     const urlResp: Response =
         await fetch(`api/${_key}/${JSON.stringify(postObj)}`);

@@ -13,7 +13,7 @@ export default function usePlayerState(playerId: ObjectId | undefined | null) {
     console.log('playertId', playerId)
     const { data: playerState, ...rest } = useQuery([
         'player',
-        { endPoint: 'getState', postString: playerId, }
+        { endPoint: 'getState', postData: playerId, }
     ], postFetch,
         {
             enabled: !!playerId,

@@ -6,26 +6,26 @@ import { IPlayer } from "../../../models/player/types";
 
 export default async function (req: NextApiRequest, resp: NextApiResponse) {
     await dbConnect();
-    const { endPoint, postString } = JSON.parse(req.query.key[0])
+    const { endPoint, postData } = JSON.parse(req.query.key[0])
 
     switch (endPoint) {
         case 'new':
-            const newPlayer: HydratedDocument<IPlayer> = new Player({ name: postString});
+            const newPlayer: HydratedDocument<IPlayer> = new Player({ name: postData});
             const savedPlayer = await newPlayer.save();
             if (savedPlayer) {
                 return resp.status(200).json(newPlayer._id);
             } else {
-                return resp.status(500);
+                return resp.status(500).send(`from /api/player case: 'new'\nraw value of newPlayer._id ${newPlayer._id}`);
             };
             break;
         case 'getState':
             const playerState =
-                await Player.findById<Query<IPlayer, IPlayer>>(postString);
+                await Player.findById<Query<IPlayer, IPlayer>>(postData);
 
             if (isPlayer(playerState)) {
                 return resp.status(200).json(playerState);
             } else {
-                return resp.status(500).json('pls respond');
+                return resp.status(500).send(`from /api/player case: 'getState'\nraw value of playerState: ${playerState}`);
             };
             break;
         default:

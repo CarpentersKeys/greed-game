@@ -2,25 +2,27 @@ import { ObjectId } from "mongoose";
 import { useMutation } from "react-query";
 /**
  * fetches to the player/[...key] endpoint and registers a new player
- * doesn't refech until enabled again(?)
  * @param name 
  * @returns UseQueryResult<IPlayer>
  */
-
-
 async function mutationFn(name: string) {
-    const postObj = { endPoint: 'new', postString: name };
-    const resp = await fetch(`api/player/${JSON.stringify(postObj)}`);
-    return resp.ok ? await resp.json() : new Error('mutation not ok');
+    const postObj = { endPoint: 'new', postData: name };
+    const resp = await fetch(`/api/player/${JSON.stringify(postObj)}`);
+    if (resp.ok) {
+        return await resp.json();
+    } else {
+        const problem = await resp.text()
+        throw new Error(`new player mutation got a bad response back ${problem}`);
+    };
 }
 
-export default function useNewPlayer<T>() {
+export default function useNewPlayer() {
     const {
-        reset: sessionReset,
-        data: sessionPlayerId,
+        reset: playerReset,
+        data: newPlayerId,
         mutate: submitNewPlayer,
         ...rest
-    } = useMutation<ObjectId | undefined, Error | unknown, string, unknown>(mutationFn);
+    } = useMutation<ObjectId, unknown, string, unknown>(mutationFn);
 
-    return { sessionReset, sessionPlayerId, submitNewPlayer, ...rest };
+    return { playerReset, newPlayerId, submitNewPlayer, ...rest };
 };
