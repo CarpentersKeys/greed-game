@@ -17,19 +17,39 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
             if (savedPlayer) {
                 return resp.status(200).json(newPlayer._id);
             } else {
-                return resp.status(500).send(`from /api/player case: 'new'\nraw value of newPlayer._id ${newPlayer._id}`);
+                return resp.status(500)
+                    .json({ errorMessage: `from /api/player case: 'new'\nraw value of newPlayer._id ${newPlayer._id}` });
             };
             break;
-        case 'getState':
+            }
+        case 'stateQuery':
+            {
+                if (isObjectId(postData)) {
+                    return resp.status(500)
+                        .json({ errorMessage: `from /api/player case: 'stateQuery'\npostData not an ObjectId ${postData}` });
+                }
+                const playerId = postData;
+
             const playerState =
-                await Player.findById<Query<IPlayer, IPlayer>>(postData);
+                    await Player.findById<Query<IPlayer, IPlayer>>(playerId);
 
             if (isPlayer(playerState)) {
-                return resp.status(200).json(playerState);
+                return resp.status(200)
+                    .json(playerState);
             } else {
-                return resp.status(500).send(`from /api/player case: 'getState'\nraw value of playerState: ${playerState}`);
+                return resp.status(500)
+                        .json({ errorMessage: `from /api/player case: 'getState'\nfailed to return a player from db: \nreturned${playerState}\nId tried: ${playerId}` });
             };
             break;
+            }
+        case 'endSession':
+            {
+            if (isObjectId(postData)) {
+                return resp.status(500)
+                    .json({ errorMessage: `from /api/player case: 'endSession'\npostData not an ObjectId ${postData}` });
+            }
+                const playerId = postData;
+
         default:
             resp.setHeader('Allow', ['GET', 'PUT']);
             resp.status(405).end(`endPoint ${endPoint} Not Allowed`);

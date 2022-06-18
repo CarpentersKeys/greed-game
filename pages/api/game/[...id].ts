@@ -17,12 +17,17 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
     switch (endPoint) {
         case 'get':
             // get player
-            console.log('pdio', isObjectId(postData))
             if (!isObjectId(postData)) {
+                return resp.status(500)
+                    .json({ errorMessage: `from /api/game case: 'joinOrCreate'\npostData not an ObjectId ${postData}` })
+            };
+
+            const playerId = postData;
             const player =
-                await Player.findById<Query<IPlayer, IPlayer>>(postData);
+                await Player.findById<Query<IPlayer, IPlayer>>(playerId);
             if (!player) {
-                return resp.status(500).send(`from /api/game case: 'get'\ncan\'t find this player: ${player}`);
+                return resp.status(500)
+                    .json({ errorMesseg: `from /api/game case: 'get'\nfailed to find player: ${player}` });
             };
 
             // check for open game
@@ -39,7 +44,9 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
                 if (savedGame) {
                     console.log('joined an existing game')
                     return resp.status(200).json(savedGame._id);
-                } else { console.error(`from /api/game case: 'get'\nfailed to update existing open game, \nraw value of savedGame: ${savedGame}`) }
+                } else {
+                    console.error(`from /api/game case: 'get'\nfailed to update existing open game, \nraw value of savedGame: ${savedGame}`)
+                }
             } else {
                 // make new game
                 const newGame: HydratedDocument<IGame> = new Game({ players: [player], isOpen: true }); // TODO
@@ -48,13 +55,19 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
                     console.log('made a new game')
                     return resp.status(200).json(newGame._id);
                 } else {
-                    return resp.status(500).send(`from /api/game case: 'get'\nfailed to save new game, \nraw value of savedGame: ${savedGame}`);
+                    return resp.status(500)
+                        .json({ errorMessage: `from api/game/[...id] case: joinOrCreate:\nfailed to save a new game\n${savedGame} ` });
+                }
                 };
-            }
             break;
-        case 'state':
+        case 'stateQuery':
+            if (!isObjectId(postData)) {
+                return resp.status(500)
+                    .json({ errorMessage: `from /api/game case: 'stateQuery'\npostData not an ObjectId ${postData}` })
+            };
+            const gameId = postData;
             const gameState =
-                await Game.findById<Query<IGame, IGame>>(postData);
+                await Game.findById<Query<IGame, IGame>>(gameId);
 
             let isGame;
             try { isGame = narrowToGame(gameState) } catch (err) {
@@ -64,7 +77,8 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
             if (isGame) {
                 return resp.status(200).json(gameState);
             } else {
-                return resp.status(500).send(`from /api/game case: 'state'\nfailed to narrow to game\nraw value of gameState ${gameState}`);
+                return resp.status(500)
+                    .json({ errorMessage: `from /api/game case: 'state'\nfailed to narrow to game\nraw value of gameState ${gameState}` });
             };
             break;
         default:
