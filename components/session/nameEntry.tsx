@@ -1,14 +1,12 @@
 import { TextInput, Group, Button } from "@mantine/core";
-import { useForm } from "@mantine/form";
-import { SyntheticEvent, useState } from "react";
-import { MutateFunction, QueryKey, UseMutationResult } from "react-query";
-// import useNewPlayer from "../../hooks/useNewPlayer";
+import { useState } from "react";
+import { TObjectId } from "../../models/typeCheckers";
 
 interface INameEntryProps {
-    newPlayerFromName: (name: string) => void;
+    submitNewPlayer: (name: string) => void;
 }
 
-export default function NameEntry({ newPlayerFromName }: INameEntryProps) {
+export default function NameEntry({ submitNewPlayer }: INameEntryProps) {
     const [name, nameSet] = useState('');
     const [errorMessage, errorMessageSet] = useState<string | null>(null);
 
@@ -16,7 +14,7 @@ export default function NameEntry({ newPlayerFromName }: INameEntryProps) {
         e.preventDefault();
         const isValid = (name.length > 3 ? true : null)
         if (isValid) {
-            newPlayerFromName(name);
+            submitNewPlayer(name);
             errorMessageSet(null);
         } else {
             errorMessageSet('use a longer name')
