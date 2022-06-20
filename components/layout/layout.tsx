@@ -16,7 +16,6 @@ export default function Layout({ children }: { children: ReactNode }): JSX.Eleme
         'player',
         { endPoint: GET_ALL_QUERY }
     ], getFetch)
-    console.log(playersData)
 
     return (
         <>
@@ -46,20 +45,25 @@ export default function Layout({ children }: { children: ReactNode }): JSX.Eleme
             <Footer />
             <Group>
 
-            <ul>
-                <li>                <h5>games</h5></li>
-                {
-                    gamesData?.games && Array.isArray(gamesData.games) && gamesData.games.map((g, i) => <li key={i}>{JSON.stringify(g._id)}</li>)
-                }
-            </ul>
-            <ul>
-                <li>
-                    <h5>players</h5>
-                </li>
-                {
-                    playersData?.players && Array.isArray(playersData.players) && playersData.players.map((p, i) => <li key={i}>{JSON.stringify(p.name+p._id)}</li>)
-                }
-            </ul>
+                <ul>
+                    <li><h5>games</h5></li>
+                    {
+                        gamesData?.games && Array.isArray(gamesData?.games) && gamesData?.games.map((g, i) => <li key={i}>
+                            ID{JSON.stringify(g._id)}
+                            <ul>
+                                {g.players.map((p, i) => <li key={i}>{p}</li>)}
+                            </ul>
+                        </li>)
+                    }
+                </ul>
+                <ul>
+                    <li>
+                        <h5>players</h5>
+                    </li>
+                    {
+                        playersData?.players && Array.isArray(playersData.players) && playersData.players.map((p, i) => <li key={i}>{JSON.stringify(p.name + p._id)}</li>)
+                    }
+                </ul>
             </Group>
         </>
     )

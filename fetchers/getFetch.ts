@@ -2,11 +2,8 @@ import { QueryKey } from "react-query";
 import { IGame } from "../models/game/types";
 import { IPlayer } from "../models/player/types";
 
-export interface IEndpointObj {
-    endPoint: string;
-}
-
-export default async function postFetch({ queryKey }: { queryKey: QueryKey }): Promise<{ games: IPlayer[] }|{ games: IGame[] }> {
+//TODO really not an ideal typing scheme
+export default async function postFetch({ queryKey }: { queryKey: QueryKey }): Promise<{ games?: IGame[], players?: IPlayer[] } > {
     const path = queryKey[0];
     const postObj = (queryKey[1]);
     if (postObj === null || typeof postObj !== 'object') { throw new Error('get fetch didnt get an object '); };
