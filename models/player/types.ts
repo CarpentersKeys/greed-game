@@ -8,10 +8,10 @@ export enum gameRole {
 }
 
 export interface IPlayer extends mongoose.Types.Subdocument {
+    _id: TObjectId;
     name: string;
     inGame: boolean;
     type: string;
     gameRole?: gameRole;
-    _id?: TObjectId;
     score?: number;
 };

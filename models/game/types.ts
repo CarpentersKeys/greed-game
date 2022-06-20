@@ -4,6 +4,7 @@ import { TObjectId } from "../typeCheckers";
 
 export interface IGame extends mongoose.Types.Subdocument{
     //TODO: autoMatch: 
+    _id: TObjectId;
     players: TObjectId[];
     type: string;
     isOpen: boolean;
@@ -11,6 +12,5 @@ export interface IGame extends mongoose.Types.Subdocument{
     roundResults?: IRoundResult[];
     _createdAt?: Date;
     _updatedAt?: Date;
-    _id?: TObjectId;
     name?: string;
 };
