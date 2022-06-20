@@ -1,9 +1,22 @@
-import { Box, Text } from "@mantine/core"
-import { ReactNode } from "react"
+import { Box, Group, Text } from "@mantine/core"
+import { ReactNode, useEffect } from "react"
 import Footer from "./footer"
 import Header from "./header"
+import getFetch from "../../fetchers/getFetch"
+import { useQuery } from "react-query"
+import { GET_ALL_QUERY } from "../../lib/famousStrings"
 
 export default function Layout({ children }: { children: ReactNode }): JSX.Element {
+    const { data: gamesData } = useQuery([
+        'game',
+        { endPoint: GET_ALL_QUERY }
+    ], getFetch)
+
+    const { data: playersData } = useQuery([
+        'player',
+        { endPoint: GET_ALL_QUERY }
+    ], getFetch)
+    console.log(playersData)
 
     return (
         <>
@@ -31,6 +44,23 @@ export default function Layout({ children }: { children: ReactNode }): JSX.Eleme
                 </Box>
             </Box>
             <Footer />
+            <Group>
+
+            <ul>
+                <li>                <h5>games</h5></li>
+                {
+                    gamesData?.games && Array.isArray(gamesData.games) && gamesData.games.map((g, i) => <li key={i}>{JSON.stringify(g._id)}</li>)
+                }
+            </ul>
+            <ul>
+                <li>
+                    <h5>players</h5>
+                </li>
+                {
+                    playersData?.players && Array.isArray(playersData.players) && playersData.players.map((p, i) => <li key={i}>{JSON.stringify(p.name+p._id)}</li>)
+                }
+            </ul>
+            </Group>
         </>
     )
 }
