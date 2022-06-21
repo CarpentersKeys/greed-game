@@ -50,6 +50,20 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
             }
                 const playerId = postData;
 
+        case GET_ALL_QUERY:
+            {
+                const endPointBadResp = pathBadResp({ endPoint: GET_ALL_QUERY });
+                const players =
+                    await Player.find().sort({ updatedAt: -1 });
+                if (endPointBadResp({
+                    evaluator(players: unknown) {
+                        if (!Array.isArray(players)) { return; };
+                        return (players.every(p => isPlayer(p)))
+                    },
+                    value: players
+                })) { return; };
+                return resp.status(200).json({ players });
+            }
         default:
             resp.status(405).end(`endPoint ${endPoint} Not Allowed`);
     }

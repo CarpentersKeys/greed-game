@@ -83,6 +83,21 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
                     .json({ errorMessage: `from /api/game case: 'state'\nfailed to narrow to game\nraw value of gameState ${gameState}` });
             };
             break;
+        case GET_ALL_QUERY:
+            {
+                const endPointErrorResp = pathBadResp({ endPoint: GET_ALL_QUERY});
+                const games =
+                    await Game.find().sort({ updatedAt: -1 });
+
+                if (endPointErrorResp({
+                    evaluator(games: unknown) {
+                        if (!Array.isArray(games)) { return; };
+                        return (games.every(g => isGame(g)))
+                    },
+                    value: games
+                })) { return; };
+                return resp.status(200).json({ games });
+            }
         default:
             resp.setHeader('Allow', ['GET', 'PUT']);
             resp.status(405).end(`endPoint ${endPoint} Not Allowed`);
