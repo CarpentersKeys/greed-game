@@ -2,7 +2,7 @@ import { NextApiResponse } from "next";
 
 interface IParamsTotal {
     value: unknown,
-    evaluator: string | ((a: unknown) => boolean | undefined),
+    evaluator: string | ((a: unknown | unknown[]) => boolean | undefined),
     apiPath: string,
     endPoint: string,
     resp: NextApiResponse<{ errorMessage: string }>,
@@ -10,7 +10,7 @@ interface IParamsTotal {
 
 interface IParamsPartial {
     value?: unknown,
-    evaluator?: string | ((a: unknown) => boolean | undefined),
+    evaluator?: string | ((a: unknown | unknown[]) => boolean | undefined),
     apiPath?: string,
     endPoint?: string,
     resp?: NextApiResponse<{ errorMessage: string }>,
