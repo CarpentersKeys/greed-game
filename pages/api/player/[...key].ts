@@ -62,7 +62,9 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
                     },
                     value: players
                 })) { return; };
-                return resp.status(200).json({ players });
+                return resp.status(200).json({ [GET_ALL_QUERY]: players });
+            }
+            break;
             }
         default:
             resp.status(405).end(`endPoint ${endPoint} Not Allowed`);

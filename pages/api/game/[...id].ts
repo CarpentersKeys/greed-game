@@ -71,21 +71,9 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
             const gameState =
                 await Game.findById<Query<IGame, IGame>>(gameId);
 
-            let isGame;
-            try { isGame = narrowToGame(gameState) } catch (err) {
-                console.error(`from /api/game case: 'state'\nfailed to narrow to game\nhere's the error ${err}`);
-            }
-
-            if (isGame) {
-                return resp.status(200).json(gameState);
-            } else {
-                return resp.status(500)
-                    .json({ errorMessage: `from /api/game case: 'state'\nfailed to narrow to game\nraw value of gameState ${gameState}` });
-            };
-            break;
         case GET_ALL_QUERY:
             {
-                const endPointErrorResp = pathBadResp({ endPoint: GET_ALL_QUERY});
+                const endPointErrorResp = pathBadResp({ endPoint: GET_ALL_QUERY });
                 const games =
                     await Game.find().sort({ updatedAt: -1 });
 
@@ -96,7 +84,9 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
                     },
                     value: games
                 })) { return; };
-                return resp.status(200).json({ games });
+                return resp.status(200).json({ [GET_ALL_QUERY]: games });
+            }
+        // mutations
             }
         default:
             resp.setHeader('Allow', ['GET', 'PUT']);

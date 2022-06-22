@@ -7,15 +7,9 @@ import { useQuery } from "react-query"
 import { GET_ALL_QUERY } from "../../lib/famousStrings"
 
 export default function Layout({ children }: { children: ReactNode }): JSX.Element {
-    const { data: gamesData } = useQuery([
-        'game',
-        { endPoint: GET_ALL_QUERY }
-    ], getFetch, { refetchInterval: 1000 })
-
-    const { data: playersData } = useQuery([
-        'player',
-        { endPoint: GET_ALL_QUERY }
-    ], getFetch, { refetchInterval: 1000 })
+    const queryResults = ['player', 'game'].map(q => useQuery([q, { endPoint: GET_ALL_QUERY }], getFetch, { refetchInterval: 1000 }))
+    const playersData = queryResults[0]?.data?.[GET_ALL_QUERY];
+    const gamesData = queryResults[1]?.data?.[GET_ALL_QUERY];
 
     return (
         <>
@@ -45,11 +39,11 @@ export default function Layout({ children }: { children: ReactNode }): JSX.Eleme
                         <ul>
                             <li><h5>games</h5></li>
                             {
-                                gamesData?.games && Array.isArray(gamesData?.games) && gamesData?.games
+                                gamesData && Array.isArray(gamesData) && gamesData
                                     .map((g, i) => <li key={i}>
                                         ID{JSON.stringify(g._id)}
                                         <ul>
-                                            {g.players.map((p, i) => <li key={i}>{String(p)}</li>)}
+                                            {'players' in g && g?.players?.map((p, i) => <li key={i}>{String(p)}</li>)}
                                         </ul>
                                     </li>)
                             }
@@ -59,8 +53,8 @@ export default function Layout({ children }: { children: ReactNode }): JSX.Eleme
                                 <h5>players</h5>
                             </li>
                             {
-                                playersData?.players && Array.isArray(playersData.players) && playersData.players
-                                    .map((p, i) => <li key={i}>{JSON.stringify(p.name + p._id)}</li>)
+                                playersData && Array.isArray(playersData) && playersData
+                                    .map((p, i) => p.name && <li key={i}>{JSON.stringify(p?.name + p._id)}</li>)
                             }
                         </ul>
                     </Group>
