@@ -7,6 +7,7 @@ import { IGame } from "../../../models/game/types";
 import { isGame, isObjectId, ObjectId } from "../../../models/typeCheckers";
 import { TObjectId } from "../../../models/typeCheckers";
 import { STATE_QUERY, REMOVE_PLAYER_FROM_GAME, JOIN_OR_CREATE_GAME, GET_ALL_QUERY } from "../../../lib/famousStrings";
+import { playerSchema } from "../../../models/player/mongoose";
 //TODO method to prevent simultaneous joins resulting in more than 2 players in the game
 //TODO when ending session kill all open games
 export default async function (
@@ -18,7 +19,7 @@ export default async function (
         | { [GET_ALL_QUERY]: IGame[] }
         // useMutateGame resps
         | { [JOIN_OR_CREATE_GAME]: TObjectId }
-        | { [REMOVE_PLAYER_FROM_GAME]: TObjectId[] }
+        | { [REMOVE_PLAYER_FROM_GAME]: { updatedGameIds: TObjectId[], deletedGames: object } }
     >
 ) {
     await dbConnect();
@@ -80,13 +81,18 @@ export default async function (
             // TODO end sesesion doesn't removed playes from array
             const games = await Game.find({ players: { $in: playerId } });
             const updatedGameIds = [];
-            console.log(games);
             for (const g of games) {
                 const updated = await playerGameAction(playerId, g, EPlayerGameAction.REMOVE).save();
-                console.log(updated);
                 updatedGameIds.push(updated._id);
             }
-            return resp.status(200).json({ [REMOVE_PLAYER_FROM_GAME]: updatedGameIds });
+            const deletedGames = await Game.deleteMany({
+                $or: [
+                    { $expr: { $lt: [{ $size: '$players' }, 1], } },
+                    { $exists: 'players.2' }
+                ]
+            })
+            console.log(deletedGames);
+            return resp.status(200).json({ [REMOVE_PLAYER_FROM_GAME]: { updatedGameIds, deletedGames } });
             break;
 
         default:
@@ -111,7 +117,6 @@ async function findOpenGame(attempt = 0): Promise<IGame | null> {
     if (!isValid) {
         // questionable deletion?
         const invalidGame = await openGame.delete();
-        console.error('found an invalid game:', invalidGame, 'deleted');
         return findOpenGame(attempt + 1);
     }
     return openGame;
@@ -124,7 +129,6 @@ function playerGameAction(playerId: TObjectId, openGame: IGame, action: EPlayerG
         update.players.push(playerId)
     } else if (action === EPlayerGameAction.REMOVE) {
         update.players = update.players.filter(p => String(p) !== String(playerId))
-        console.log(update.players)
     }
     update.isOpen = update.players.length < 2;
     return Object.assign(openGame, update);
