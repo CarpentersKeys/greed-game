@@ -38,7 +38,7 @@ export function narrowToGame(sth: unknown) {
     if ('players' in sth && 'isOpen' in sth && 'type' in sth && 'gameStage' in sth) {
         return sth as IGame;
     }
-    throw new Error('tried to pass non IGame to postFetch via useQuery');
+    throw new Error('tried to pass non IGame to narrow to game via useQuery');
 }
 // TODO why does sth._id fail ts when sth: unknown
 export function isGame(sth: any): boolean {

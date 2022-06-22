@@ -1,75 +1,45 @@
-import { HydratedDocument, Query, Schema } from "mongoose";
+import { Query } from "mongoose";
 import type { NextApiRequest, NextApiResponse } from "next";
 import dbConnect from "../../../lib/dbConnect";
+import { validateTypeAndErrorIfFail } from "../../../lib/validateTypeAndErrorIfFail";
 import { Game } from "../../../models/game/mongoose";
 import { IGame } from "../../../models/game/types";
-import { Player } from "../../../models/player/mongoose";
-import { IPlayer } from "../../../models/player/types";
-import { isObjectId } from "../../../models/typeCheckers";
-import { narrowToGame } from "../../../models/typeCheckers";
-
+import { isGame, isObjectId, ObjectId } from "../../../models/typeCheckers";
+import { TObjectId } from "../../../models/typeCheckers";
+import { STATE_QUERY, REMOVE_PLAYER_FROM_GAME, JOIN_OR_CREATE_GAME, GET_ALL_QUERY } from "../../../lib/famousStrings";
 //TODO method to prevent simultaneous joins resulting in more than 2 players in the game
 //TODO when ending session kill all open games
-export default async function (req: NextApiRequest, resp: NextApiResponse) {
+export default async function (
+    req: NextApiRequest,
+    resp: NextApiResponse<
+        { errorMessage: string }
+        // useQuery resps
+        | { [STATE_QUERY]: IGame }
+        | { [GET_ALL_QUERY]: IGame[] }
+        // useMutateGame resps
+        | { [JOIN_OR_CREATE_GAME]: TObjectId }
+        | { [REMOVE_PLAYER_FROM_GAME]: TObjectId[] }
+    >
+) {
     await dbConnect();
     const { endPoint, postData } = JSON.parse(req.query.id[0])
+    const pathBadResp = validateTypeAndErrorIfFail({ apiPath: 'game', resp });
 
-    // console.log('ep', endPoint)
-    // console.log('pd', postData)
     switch (endPoint) {
-        case 'joinOrCreate':
-            // get player
-            if (!isObjectId(postData)) {
-                return resp.status(500)
-                    .json({ errorMessage: `from /api/game case: 'joinOrCreate'\npostData not an ObjectId ${postData}` })
-            };
-
-            const playerId = postData;
-            const player =
-                await Player.findById<Query<IPlayer, IPlayer>>(playerId);
-            if (!player) {
-                return resp.status(500)
-                    .json({ errorMesseg: `from /api/game case: 'get'\nfailed to find player: ${player}` });
-            };
-
-            // check for open game
-            const openGame = await findOpenGame(); // defined below
-
-            if (openGame) {
-                const newPlayers = [...openGame.players, player._id];
-                const update = {
-                    players: newPlayers,
-                    isOpen: false,
+        // queries
+        case STATE_QUERY:
+            {
+                const endPointErrorResp = pathBadResp({ endPoint: STATE_QUERY });
+                if (endPointErrorResp({ evaluator: isObjectId, value: postData })) { return; };
+                const gameId = postData;
+                const gameState =
+                    await Game.findById(gameId);
+                if (endPointErrorResp({ evaluator: isGame, value: gameState })) {
+                    return;
                 };
-                const closedGame = Object.assign(openGame, update);
-                const savedGame = await closedGame.save();
-                if (savedGame) {
-                    console.log('joined an existing game')
-                    return resp.status(200).json(savedGame._id);
-                } else {
-                    console.error(`from /api/game case: 'get'\nfailed to update existing open game, \nraw value of savedGame: ${savedGame}`)
-                }
-            } else {
-                // make new game
-                const newGame: HydratedDocument<IGame> = new Game({ players: [player._id], isOpen: true }); // TODO
-                const savedGame = await newGame.save();
-                if (savedGame) {
-                    console.log('made a new game')
-                    return resp.status(200).json(newGame._id);
-                } else {
-                    return resp.status(500)
-                        .json({ errorMessage: `from api/game/[...id] case: joinOrCreate:\nfailed to save a new game\n${savedGame} ` });
-                }
-                };
+                return resp.status(200).json({ [STATE_QUERY]: gameState });
+            }
             break;
-        case 'stateQuery':
-            if (!isObjectId(postData)) {
-                return resp.status(500)
-                    .json({ errorMessage: `from /api/game case: 'stateQuery'\npostData not an ObjectId ${postData}` })
-            };
-            const gameId = postData;
-            const gameState =
-                await Game.findById<Query<IGame, IGame>>(gameId);
 
         case GET_ALL_QUERY:
             {
@@ -87,7 +57,38 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
                 return resp.status(200).json({ [GET_ALL_QUERY]: games });
             }
         // mutations
+        case JOIN_OR_CREATE_GAME:
+            {
+                const endPointErrorResp = pathBadResp({ endPoint: JOIN_OR_CREATE_GAME });
+                if (endPointErrorResp({ evaluator: isObjectId, value: postData })) { return; };
+                const playerId = postData;
+                // check for open game
+                const openGame = await findOpenGame(); // defined below
+                const closedGame = openGame
+                    ? playerGameAction(playerId, openGame, EPlayerGameAction.JOIN)
+                    : new Game({ players: [playerId], isOpen: true });
+                const savedGame = await closedGame.save();
+                if (endPointErrorResp({ evaluator: isObjectId, value: savedGame._id })) { return; };
+                return resp.status(200).json({ [JOIN_OR_CREATE_GAME]: savedGame._id });
             }
+            break;
+
+        case REMOVE_PLAYER_FROM_GAME:
+            if (pathBadResp({ evaluator: isObjectId, value: postData, endPoint: JOIN_OR_CREATE_GAME })) { return; };
+            const playerId = postData;
+            // remove player from all games
+            // TODO end sesesion doesn't removed playes from array
+            const games = await Game.find({ players: { $in: playerId } });
+            const updatedGameIds = [];
+            console.log(games);
+            for (const g of games) {
+                const updated = await playerGameAction(playerId, g, EPlayerGameAction.REMOVE).save();
+                console.log(updated);
+                updatedGameIds.push(updated._id);
+            }
+            return resp.status(200).json({ [REMOVE_PLAYER_FROM_GAME]: updatedGameIds });
+            break;
+
         default:
             resp.setHeader('Allow', ['GET', 'PUT']);
             resp.status(405).end(`endPoint ${endPoint} Not Allowed`);
@@ -107,14 +108,24 @@ async function findOpenGame(attempt = 0): Promise<IGame | null> {
         // TODO: standardized isPlayer()
         .filter(playerId => isObjectId(playerId))
         .length === 1;
-
     if (!isValid) {
         // questionable deletion?
         const invalidGame = await openGame.delete();
         console.error('found an invalid game:', invalidGame, 'deleted');
         return findOpenGame(attempt + 1);
     }
-
-    // join in
     return openGame;
+}
+
+enum EPlayerGameAction { JOIN = 'join', REMOVE = 'remove', }
+function playerGameAction(playerId: TObjectId, openGame: IGame, action: EPlayerGameAction) {
+    const update = openGame
+    if (action === EPlayerGameAction.JOIN) {
+        update.players.push(playerId)
+    } else if (action === EPlayerGameAction.REMOVE) {
+        update.players = update.players.filter(p => String(p) !== String(playerId))
+        console.log(update.players)
+    }
+    update.isOpen = update.players.length < 2;
+    return Object.assign(openGame, update);
 }

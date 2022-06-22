@@ -1,54 +1,39 @@
 import { HydratedDocument, Query, Schema } from "mongoose";
 import type { NextApiRequest, NextApiResponse } from "next";
 import dbConnect from "../../../lib/dbConnect";
-import { Game } from "../../../models/game/mongoose";
+import { CREATE_PLAYER, DELETE_PLAYER, GET_ALL_QUERY, STATE_QUERY } from "../../../lib/famousStrings";
+import { validateTypeAndErrorIfFail } from "../../../lib/validateTypeAndErrorIfFail";
 import { Player } from "../../../models/player/mongoose";
 import { IPlayer } from "../../../models/player/types";
-import { isObjectId } from "../../../models/typeCheckers";
+import { isObjectId, isPlayer, TObjectId } from "../../../models/typeCheckers";
 
-export default async function (req: NextApiRequest, resp: NextApiResponse) {
+export default async function (
+    req: NextApiRequest,
+    resp: NextApiResponse<
+        { errorMessage: string }
+        | { [STATE_QUERY]: IPlayer }
+        | { [GET_ALL_QUERY]: IPlayer[] }
+        | { [CREATE_PLAYER]: TObjectId }
+        | { [DELETE_PLAYER]: TObjectId }
+    >
+) {
     await dbConnect();
     const { endPoint, postData } = JSON.parse(req.query.key[0])
+    // load endpoint and response object to validation fn
+    const pathBadResp = validateTypeAndErrorIfFail({ apiPath: 'player', resp });
 
     switch (endPoint) {
-        case 'new':
+        case STATE_QUERY:
             {
-                const newPlayer: HydratedDocument<IPlayer> = new Player({ name: postData });
-            const savedPlayer = await newPlayer.save();
-            if (savedPlayer) {
-                return resp.status(200).json(newPlayer._id);
-            } else {
-                return resp.status(500)
-                    .json({ errorMessage: `from /api/player case: 'new'\nraw value of newPlayer._id ${newPlayer._id}` });
-            };
-            break;
-            }
-        case 'stateQuery':
-            {
-                if (!isObjectId(postData)) {
-                    return resp.status(500)
-                        .json({ errorMessage: `from /api/player case: 'stateQuery'\npostData not an ObjectId ${postData}` });
-                }
+                const valueBadResp = pathBadResp({ endPoint: STATE_QUERY })
+                if (valueBadResp({ evaluator: isObjectId, value: postData })) { return; };
                 const playerId = postData;
-            const playerState =
-                    await Player.findById<Query<IPlayer, IPlayer>>(playerId);
-
-            if (isPlayer(playerState)) {
-                return resp.status(200)
-                    .json(playerState);
-            } else {
-                return resp.status(500)
-                        .json({ errorMessage: `from /api/player case: 'stateQuery'\nfailed to return a player from db: \nreturned${playerState}\nId tried: ${playerId}` });
-            };
+                const playerState =
+                    await Player.findById(playerId);
+                if (valueBadResp({ evaluator: isPlayer, value: playerState })) { return; };
+                return resp.status(200).json({ [STATE_QUERY]: playerState });
+            }
             break;
-            }
-        case 'endSession':
-            {
-                if (!isObjectId(postData)) {
-                return resp.status(500)
-                    .json({ errorMessage: `from /api/player case: 'endSession'\npostData not an ObjectId ${postData}` });
-            }
-                const playerId = postData;
 
         case GET_ALL_QUERY:
             {
@@ -65,34 +50,34 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
                 return resp.status(200).json({ [GET_ALL_QUERY]: players });
             }
             break;
+
+        case CREATE_PLAYER:
+            {
+                // load endpoint into validation function the validate player name
+                const endPointPathBadResp = pathBadResp({ endPoint: CREATE_PLAYER });
+                if (endPointPathBadResp({ evaluator: (p => !!p && typeof p === 'string'), value: postData })) { return; };
+                const name = postData;
+                const newPlayer: HydratedDocument<IPlayer> = new Player({ name });
+                const savedPlayer = await newPlayer.save();
+                if (endPointPathBadResp({ evaluator: isObjectId, value: savedPlayer?._id })) { return; };
+                return resp.status(200).json({ [CREATE_PLAYER]: savedPlayer._id });
             }
+            break;
+
+        case DELETE_PLAYER:
+            {
+                const valueErrorResp = pathBadResp({ endPoint: DELETE_PLAYER })
+                if (valueErrorResp({ evaluator: isObjectId, value: postData })) { return; };
+                const playerId = postData;
+
+
+                //remove player from db
+                const deletedPlayer = await Player.findByIdAndDelete(playerId);
+                if (valueErrorResp({ evaluator: '!', value: deletedPlayer })) { return; };
+                return resp.status(200).json({ [DELETE_PLAYER]: deletedPlayer._id });
+            };
+            break;
         default:
             resp.status(405).end(`endPoint ${endPoint} Not Allowed`);
     }
 };
-
-// TODO: fix this embarassing mess
-function isPlayer(obj: any): boolean {
-    if (!obj) {
-        console.error('isPlayer, nithnig here ')
-        return false
-    };
-
-    if (!('_id' in obj)) {
-        console.error('isPlayer, no _id ')
-        return false
-    };
-    if (!('name' in obj)) {
-        console.error('isPlayer, no name ')
-        return false
-    };
-    if (!('createdAt' in obj)) {
-        console.error('isPlayer, no created ')
-        return false
-    };
-    if (!('updatedAt' in obj)) {
-        console.error('isPlayer, no updated')
-        return false
-    };
-    return true;
-}

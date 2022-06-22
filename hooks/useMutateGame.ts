@@ -1,12 +1,13 @@
 import { useEffect, useRef } from "react";
 import { useMutation } from "react-query";
 import makeMutationFn from "../fetchers/makeMutationFn";
-import { TObjectId } from "../models/typeCheckers";
+import { JOIN_OR_CREATE_GAME, REMOVE_PLAYER_FROM_GAME } from "../lib/famousStrings";
+import { isObjectId, TObjectId } from "../models/typeCheckers";
 
 export default function useMutateGame(newPlayerId: TObjectId | undefined | null) {
     const playerId = useRef<TObjectId | null>(null);
     useEffect(() => {
-        if (playerId.current !== newPlayerId) {
+        if (playerId.current !== newPlayerId && isObjectId(newPlayerId)) {
             if (newPlayerId) {
                 playerId.current = newPlayerId;
                 joinOrCreateGame(newPlayerId);
@@ -18,16 +19,18 @@ export default function useMutateGame(newPlayerId: TObjectId | undefined | null)
 
     const {
         reset: gameReset,
-        data: newGameId,
+        data,
         mutate,
         ...rest
-    } = useMutation<TObjectId, unknown, {endPoint: string, postData: any}, unknown>(makeMutationFn('game'));
+    } = useMutation<IUseMutateGameReturn, unknown, IUseMutateGameFnArgs, unknown>(makeMutationFn('game'));
 
-
-    function joinOrCreateGame(playerId: TObjectId) { mutate({ endPoint: 'joinOrCreate', postData: playerId }); };
-    function removePlayerFromGame(playerId: TObjectId) { mutate({ endPoint: 'removePlayer', postData: playerId }); };
+    function joinOrCreateGame(playerId: TObjectId) { mutate({ endPoint: JOIN_OR_CREATE_GAME, postData: playerId }); };
+    function removePlayerFromGame(playerId: TObjectId) { mutate({ endPoint: REMOVE_PLAYER_FROM_GAME, postData: playerId }); };
+    const newGameId = data?.[JOIN_OR_CREATE_GAME];
+    const deletedPlayer = data?.[REMOVE_PLAYER_FROM_GAME];
 
     return {
+        deletedPlayer,
         newGameId,
         gameReset,
         joinOrCreateGame,
@@ -35,3 +38,5 @@ export default function useMutateGame(newPlayerId: TObjectId | undefined | null)
         ...rest
     };
 }
+interface IUseMutateGameFnArgs { endPoint: string, postData: any }
+interface IUseMutateGameReturn { [JOIN_OR_CREATE_GAME]: TObjectId | undefined, [REMOVE_PLAYER_FROM_GAME]: TObjectId | undefined }

@@ -1,19 +1,26 @@
-interface IMutationVariables <TPostData = any>{
+import { JOIN_OR_CREATE_GAME } from "../lib/famousStrings";
+
+interface IMutationVariables<TPostData = any> {
     endPoint: string;
     postData: TPostData;
 }
 
-export default function makeMutationFn(key: string) {
-return (
-    async function mutationFn(mutationVariables: IMutationVariables) {
+export default function makeMutationFn(path: string) {
+    return (
+        async function mutationFn(mutationVariables: IMutationVariables) {
             const { endPoint } = mutationVariables
             // const postObj = { endPoint, postData };
-            const resp = await fetch(`/api/${key}/${JSON.stringify(mutationVariables)}`);
+            endPoint === JOIN_OR_CREATE_GAME && console.log('prefetch', path, 'postObj: ', mutationVariables)
+            const resp = await fetch(`/api/${path}/${JSON.stringify(mutationVariables)}`);
+            endPoint === JOIN_OR_CREATE_GAME && console.log('json of resp in makeMutation: ', resp)
             const jResp = await resp.json();
+            endPoint === JOIN_OR_CREATE_GAME && console.log('json of resp in makeMutation: ', jResp)
             if (resp.ok) {
+                endPoint === JOIN_OR_CREATE_GAME && console.log(`successful mutation ${path}, ${JSON.stringify(mutationVariables)}, ${JSON.stringify(jResp)}`)
                 return jResp;
             } else {
-                throw new Error(`${endPoint} ${key} mutation got a bad response back\nerrorMessage: ${jResp.errorMessage}`);
+                endPoint === JOIN_OR_CREATE_GAME && console.log('postfetch', path, 'postObj: ', mutationVariables)
+                throw new Error(`mutationFn targeting endPoint: ${endPoint}, path: /api/${path} got a bad response back\nerrorMessage: ${jResp.errorMessage}`);
             };
         }
     )

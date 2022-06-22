@@ -1,30 +1,33 @@
 import { useQuery } from "react-query";
-import postFetch from "../fetchers/postFetch";
+import stateFetch from "../fetchers/stateFetch";
+import { STATE_QUERY } from "../lib/famousStrings";
 import { narrowToGame } from "../models/typeCheckers";
-import { ObjectId, TObjectId } from "../models/typeCheckers";
+import { TObjectId } from "../models/typeCheckers";
 
 /**
  * continuously fetches for gameState
  * @param gameId
  * @returns UseQueryResult<IGame>
  */
+const USE_GAME_STATE = 'useGameState' // TODO how am I supposed to get the fn name into onSuccess dynamically?
 export default function useGameState(gameId: TObjectId | undefined | null) {
-    const { data: gameState, ...rest } = useQuery([
+    const { data, ...rest } = useQuery([
         'game',
-        { endPoint: 'stateQuery', postData: gameId, }
-    ], postFetch,
+        { endPoint: STATE_QUERY, postData: gameId, }
+    ], stateFetch,
         {
             enabled: !!gameId,
             keepPreviousData: !!gameId,
-            onSuccess: (gameState) => {
+            onSuccess: (data) => {
                 try {
-                    narrowToGame(gameState);
+                    narrowToGame(data?.[STATE_QUERY]);
                 } catch (err) {
-                    console.error(`error in useNewGame \nendpoint: 'getState'\ngameId:${gameId}name\n${err}`);
+                    console.error(`error in ${USE_GAME_STATE}\nendpoint: ${STATE_QUERY}\ngameId:${JSON.stringify(gameId)}name\n${err}`);
                 }
             },
         }
     );
 
+    const gameState = data?.[STATE_QUERY];
     return { gameState, ...rest };
 };
