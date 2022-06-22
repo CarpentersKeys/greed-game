@@ -1,5 +1,5 @@
-import { Box, Group, Text } from "@mantine/core"
-import { ReactNode, useEffect } from "react"
+import { Box, Group } from "@mantine/core"
+import { ReactNode } from "react"
 import Footer from "./footer"
 import Header from "./header"
 import getFetch from "../../fetchers/getFetch"

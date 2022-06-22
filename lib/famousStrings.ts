@@ -2,6 +2,7 @@
 //generic endpoints
 export const STATE_QUERY = 'stateQuery';
 export const GET_ALL_QUERY= 'getAllQuery';
+export const UPDATE_STATE = 'updateState';
 
 // game endpoints
 export const JOIN_OR_CREATE_GAME = 'joinOrCreateGame';

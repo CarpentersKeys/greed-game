@@ -10,7 +10,7 @@ interface IParamsTotal {
 
 interface IParamsPartial {
     value?: unknown,
-    evaluator?: string | ((a: unknown | unknown[]) => boolean | undefined),
+    evaluator?: string | ((a: any | any[]) => boolean | undefined),
     apiPath?: string,
     endPoint?: string,
     resp?: NextApiResponse<{ errorMessage: string }>,

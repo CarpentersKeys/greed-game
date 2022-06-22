@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useMutation } from "react-query";
 import makeMutationFn from "../fetchers/makeMutationFn";
-import { JOIN_OR_CREATE_GAME, REMOVE_PLAYER_FROM_GAME } from "../lib/famousStrings";
+import { JOIN_OR_CREATE_GAME, REMOVE_PLAYER_FROM_GAME, UPDATE_STATE } from "../lib/famousStrings";
+import { IGame, IGameUpdate } from "../models/game/types";
 import { isObjectId, TObjectId } from "../models/typeCheckers";
 
 export default function useMutateGame(newPlayerId: TObjectId | undefined | null) {
@@ -26,10 +27,12 @@ export default function useMutateGame(newPlayerId: TObjectId | undefined | null)
 
     function joinOrCreateGame(playerId: TObjectId) { mutate({ endPoint: JOIN_OR_CREATE_GAME, postData: playerId }); };
     function removePlayerFromGame(playerId: TObjectId) { mutate({ endPoint: REMOVE_PLAYER_FROM_GAME, postData: playerId }); };
+    function updateGameState(updatedPlayer: IGameUpdate) { mutate({ endPoint: UPDATE_STATE, postData: updatedPlayer }); };
     const newGameId = data?.[JOIN_OR_CREATE_GAME];
     const deletedPlayer = data?.[REMOVE_PLAYER_FROM_GAME];
 
     return {
+        updateGameState,
         deletedPlayer,
         newGameId,
         gameReset,

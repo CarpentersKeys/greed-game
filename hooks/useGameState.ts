@@ -11,7 +11,7 @@ import { TObjectId } from "../models/typeCheckers";
  */
 const USE_GAME_STATE = 'useGameState' // TODO how am I supposed to get the fn name into onSuccess dynamically?
 export default function useGameState(gameId: TObjectId | undefined | null) {
-    const { data, ...rest } = useQuery([
+    return useQuery([
         'game',
         { endPoint: STATE_QUERY, postData: gameId, }
     ], stateFetch,
@@ -20,7 +20,7 @@ export default function useGameState(gameId: TObjectId | undefined | null) {
             keepPreviousData: !!gameId,
             onSuccess: (data) => {
                 try {
-                    narrowToGame(data?.[STATE_QUERY]);
+                    narrowToGame(data);
                 } catch (err) {
                     console.error(`error in ${USE_GAME_STATE}\nendpoint: ${STATE_QUERY}\ngameId:${JSON.stringify(gameId)}name\n${err}`);
                 }
@@ -28,6 +28,4 @@ export default function useGameState(gameId: TObjectId | undefined | null) {
         }
     );
 
-    const gameState = data?.[STATE_QUERY];
-    return { gameState, ...rest };
 };

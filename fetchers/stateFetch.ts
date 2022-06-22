@@ -1,12 +1,30 @@
 import { IPlayer } from "../models/player/types";
 import { QueryKey } from "react-query";
-import { TObjectId } from "../models/typeCheckers";
+import { isGame, isPlayer, TObjectId } from "../models/typeCheckers";
 import { STATE_QUERY } from "../lib/famousStrings";
 import { IGame } from "../models/game/types";
 
 export interface IPostObj {
     endPoint: string;
     postData: string | TObjectId;
+}
+const STATE_FETCH = 'stateFetch';
+export default async function stateFetch({ queryKey }: { queryKey: QueryKey }):
+    Promise<any> { // TODO: HOW CAN I MAKE THIS SATISFY IGame AND IPLayer WITHOUGHT offending the use*State hooks
+    const path = queryKey[0];
+
+    const postObj = narrowToObj(queryKey[1]);
+
+    const urlResp: Response =
+        await fetch(`api/${path}/${JSON.stringify(postObj)}`);
+    if (!urlResp.ok) {
+        const err = await urlResp.json();
+        throw err
+    }
+    const jsonResp = await urlResp.json()
+    if (isPlayer(jsonResp?.[STATE_QUERY])) { return jsonResp?.[STATE_QUERY] as IPlayer; };
+    if (isGame(jsonResp?.[STATE_QUERY])) { return jsonResp?.[STATE_QUERY] as IGame; };
+    throw Error(`${STATE_FETCH} didn't return an IGame or IPlayer`)
 }
 
 function narrowToObj(sth: unknown): IPostObj {
@@ -21,20 +39,4 @@ function narrowToObj(sth: unknown): IPostObj {
     } catch (err) {
         throw err + ' input: ' + JSON.stringify(sth)
     }
-}
-
-export default async function stateFetch({ queryKey }: { queryKey: QueryKey }): Promise<{[STATE_QUERY]: IPlayer} | {[STATE_QUERY]: IGame}> {
-    const path = queryKey[0];
-
-    const postObj = narrowToObj(queryKey[1]);
-
-    // console.log('prefetch',path, 'postObj: ', postObj)
-    const urlResp: Response =
-        await fetch(`api/${path}/${JSON.stringify(postObj)}`);
-    if (!urlResp.ok) {
-        const err = await urlResp.json();
-        throw err
-    }
-    // get a result back
-    return (urlResp.ok && await urlResp.json());
 }

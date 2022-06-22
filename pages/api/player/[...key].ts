@@ -1,7 +1,8 @@
-import { HydratedDocument, Query, Schema } from "mongoose";
+import { HydratedDocument, UpdateAggregationStage, UpdateQuery } from "mongoose";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { Query } from "react-query";
 import dbConnect from "../../../lib/dbConnect";
-import { CREATE_PLAYER, DELETE_PLAYER, GET_ALL_QUERY, STATE_QUERY } from "../../../lib/famousStrings";
+import { CREATE_PLAYER, DELETE_PLAYER, GET_ALL_QUERY, STATE_QUERY, UPDATE_STATE } from "../../../lib/famousStrings";
 import { validateTypeAndErrorIfFail } from "../../../lib/validateTypeAndErrorIfFail";
 import { Player } from "../../../models/player/mongoose";
 import { IPlayer } from "../../../models/player/types";
@@ -14,6 +15,7 @@ export default async function (
         | { [STATE_QUERY]: IPlayer }
         | { [GET_ALL_QUERY]: IPlayer[] }
         | { [CREATE_PLAYER]: TObjectId }
+        | { [UPDATE_STATE]: TObjectId }
         | { [DELETE_PLAYER]: TObjectId }
     >
 ) {
@@ -23,6 +25,7 @@ export default async function (
     const pathBadResp = validateTypeAndErrorIfFail({ apiPath: 'player', resp });
 
     switch (endPoint) {
+        // queries
         case STATE_QUERY:
             {
                 const valueBadResp = pathBadResp({ endPoint: STATE_QUERY })
@@ -51,6 +54,7 @@ export default async function (
             }
             break;
 
+        // mutations
         case CREATE_PLAYER:
             {
                 // load endpoint into validation function the validate player name
@@ -64,14 +68,24 @@ export default async function (
             }
             break;
 
+        case UPDATE_STATE:
+            {
+                const endPointPathBadResp = pathBadResp({ endPoint: UPDATE_STATE });
+                if (endPointPathBadResp({ evaluator: isObjectId, value: postData._id })) { return; };
+                const playerId = postData._id;
+                const update = postData;
+                const updateResp = await Player.updateOne({ _id: playerId }, update);
+                if (endPointPathBadResp({ evaluator: isGoodPlayerUpdate, value: updateResp })) { return; };
+                const updatedPlayer = await Player.findById(playerId);
+                if (endPointPathBadResp({ evaluator: isPlayer, value: updatedPlayer})) { return; };
+                return resp.status(200).json({ [UPDATE_STATE]: playerId });
+            }
+            break;
         case DELETE_PLAYER:
             {
                 const valueErrorResp = pathBadResp({ endPoint: DELETE_PLAYER })
                 if (valueErrorResp({ evaluator: isObjectId, value: postData })) { return; };
                 const playerId = postData;
-
-
-                //remove player from db
                 const deletedPlayer = await Player.findByIdAndDelete(playerId);
                 if (valueErrorResp({ evaluator: '!', value: deletedPlayer })) { return; };
                 return resp.status(200).json({ [DELETE_PLAYER]: deletedPlayer._id });
@@ -81,3 +95,9 @@ export default async function (
             resp.status(405).end(`endPoint ${endPoint} Not Allowed`);
     }
 };
+
+function isGoodPlayerUpdate(updateResp: UpdateQuery<IPlayer>) {
+    if (!updateResp?.acknowledged) { return false; };
+    if (!(updateResp?.matchedCount === 1)) { return false; };
+    return true;
+}
