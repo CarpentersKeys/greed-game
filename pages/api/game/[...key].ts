@@ -22,7 +22,7 @@ export default async function (
     >
 ) {
     await dbConnect();
-    const { endPoint, postData } = JSON.parse(req.query.id[0])
+    const { endPoint, postData } = JSON.parse(req.query.key[0])
     const pathBadResp = validateTypeAndErrorIfFail({ apiPath: 'game', resp });
 
     switch (endPoint) {
