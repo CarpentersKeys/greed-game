@@ -1,4 +1,4 @@
-import { ClientSession, Mongoose } from "mongoose";
+import mongoose from "mongoose";
 
 declare global {
     var mongoose: mongoose

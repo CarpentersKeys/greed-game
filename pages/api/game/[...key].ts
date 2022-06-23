@@ -7,6 +7,7 @@ import { IGame } from "../../../models/game/types";
 import { isGame, isObjectId, ObjectId } from "../../../models/typeCheckers";
 import { TObjectId } from "../../../models/typeCheckers";
 import { STATE_QUERY, REMOVE_PLAYER_FROM_GAME, JOIN_OR_CREATE_GAME, GET_ALL_QUERY } from "../../../lib/famousStrings";
+import { EJoinedOrCreated } from "../../../models/game/types";
 //TODO method to prevent simultaneous joins resulting in more than 2 players in the game
 //TODO when ending session kill all open games
 export default async function (
@@ -17,7 +18,7 @@ export default async function (
         | { [STATE_QUERY]: IGame }
         | { [GET_ALL_QUERY]: IGame[] }
         // useMutateGame resps
-        | { [JOIN_OR_CREATE_GAME]: TObjectId }
+        | { [JOIN_OR_CREATE_GAME]: { [EJoinedOrCreated.GAME_CREATED]?: TObjectId, [EJoinedOrCreated.GAME_JOINED]?: TObjectId } }
         | { [REMOVE_PLAYER_FROM_GAME]: { updatedGameIds: TObjectId[], deletedGameIds: TObjectId[] } }
     >
 ) {
@@ -68,8 +69,9 @@ export default async function (
                     ? playerGameAction(playerId, openGame, EPlayerGameAction.JOIN)
                     : new Game({ players: [playerId], isOpen: true });
                 const savedGame = await closedGame.save();
+                const joinedOrCreated = openGame ? EJoinedOrCreated.GAME_JOINED : EJoinedOrCreated.GAME_CREATED;
                 if (endPointBadResp({ evaluator: isObjectId, value: savedGame._id })) { return; };
-                return resp.status(200).json({ [JOIN_OR_CREATE_GAME]: savedGame._id });
+                return resp.status(200).json({ [JOIN_OR_CREATE_GAME]: { [joinedOrCreated]: savedGame._id } });
             }
             break;
 

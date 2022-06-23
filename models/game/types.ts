@@ -2,6 +2,11 @@ import mongoose from 'mongoose';
 import IRoundResult from "../roundResult/types";
 import { TObjectId } from "../typeCheckers";
 
+export enum EJoinedOrCreated {
+    GAME_JOINED = 'gameJoined',
+    GAME_CREATED = 'gameCreated',
+}
+
 export interface IGame extends mongoose.Types.Subdocument{
     //TODO: autoMatch: 
     _id: TObjectId;
