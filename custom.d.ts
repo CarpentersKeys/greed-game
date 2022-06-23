@@ -1,5 +1,7 @@
+import { ClientSession, Mongoose } from "mongoose";
+
 declare global {
-    var mongoose: any
+    var mongoose: mongoose
 }
 
 export {};
