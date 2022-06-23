@@ -26,8 +26,9 @@ export default function useMutateGame(newPlayerId: TObjectId | undefined | null,
         {
             onSuccess(data) {
                 const gameIdJoined = data?.[JOIN_OR_CREATE_GAME]?.[EJoinedOrCreated.GAME_JOINED];
+                console.log(gameIdJoined)
                 gameIdJoined && assignRoles(gameIdJoined);
-            }
+            },
         }
     );
 

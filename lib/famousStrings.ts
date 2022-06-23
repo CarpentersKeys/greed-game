@@ -11,3 +11,4 @@ export const REMOVE_PLAYER_FROM_GAME = 'removePlayerFromGame';
 // player endpoints
 export const CREATE_PLAYER = 'createPlayer';
 export const DELETE_PLAYER = 'deletePlayer';
+export const ASSIGN_ROLES = 'assignRoles';

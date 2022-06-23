@@ -2,25 +2,25 @@ import mongoose from "mongoose";
 import { TObjectId } from "../typeCheckers";
 
 
-export enum gameRole {
-    TimerPlayer = 'timerPlayer',
-    GreedyPlayer = 'greedyPlayer',
+export enum EGameRoles {
+    TIMER_PLAYER = 'timerPlayer',
+    GREEDY_PLAYER = 'greedyPlayer',
 }
 
 export interface IPlayer extends mongoose.Types.Subdocument {
     _id: TObjectId;
     name: string;
-    inGame: boolean;
+    inGame: undefined | TObjectId;
     type: string;
-    gameRole?: gameRole;
+    gameRole?: EGameRoles;
     score?: number;
 };
 
 export interface IPlayerUpdate {
     _id: TObjectId;
     name?: string;
-    inGame?: boolean;
+    inGame?: undefined| TObjectId;
     type?: string;
-    gameRole?: gameRole;
+    gameRole?: EGameRoles;
     score?: number;
 };

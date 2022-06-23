@@ -11,7 +11,7 @@ export function narrowToPlayer(sth: unknown): IPlayer {
     if (sth === null || typeof sth !== 'object') {
         throw new Error(`something that was supposed to be a player isn\'t: ${sth}`);
     };
-    if ('name' in sth && 'inGame' in sth) {
+    if ('name' in sth) {
         return sth as IPlayer;
     }
     throw new Error('must give postFetch an IPostOBj via useQuery');
@@ -52,7 +52,7 @@ export function isGame(sth: any): boolean {
 export function isPlayer(sth: any): boolean {
     if (!sth || sth === null) { return false; };
     if (typeof sth !== 'object') { return false; };
-    if (!('_id' in sth && 'type' in sth && 'inGame' in sth)) { return false; };
+    if (!('_id' in sth && 'type' in sth && 'name' in sth)) { return false; };
     if (Object.hasOwn(sth, '_id') && !isObjectId(sth._id)) { return false; };
     return true;
 }

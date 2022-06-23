@@ -4,10 +4,11 @@ import dbConnect from "../../../lib/dbConnect";
 import { validateTypeAndErrorIfFail } from "../../../lib/validateTypeAndErrorIfFail";
 import { Game } from "../../../models/game/mongoose";
 import { IGame } from "../../../models/game/types";
-import { isGame, isObjectId, ObjectId } from "../../../models/typeCheckers";
+import { isGame, isObjectId, isPlayer, ObjectId } from "../../../models/typeCheckers";
 import { TObjectId } from "../../../models/typeCheckers";
 import { STATE_QUERY, REMOVE_PLAYER_FROM_GAME, JOIN_OR_CREATE_GAME, GET_ALL_QUERY } from "../../../lib/famousStrings";
 import { EJoinedOrCreated } from "../../../models/game/types";
+import { Player } from "../../../models/player/mongoose";
 //TODO method to prevent simultaneous joins resulting in more than 2 players in the game
 //TODO when ending session kill all open games
 export default async function (
@@ -60,6 +61,7 @@ export default async function (
         // mutations
         case JOIN_OR_CREATE_GAME:
             {
+                console.log(postData)
                 const endPointBadResp = pathBadResp({ endPoint: JOIN_OR_CREATE_GAME });
                 if (endPointBadResp({ evaluator: isObjectId, value: postData })) { return; };
                 const playerId = postData;
@@ -71,16 +73,18 @@ export default async function (
                 const savedGame = await closedGame.save();
                 const joinedOrCreated = openGame ? EJoinedOrCreated.GAME_JOINED : EJoinedOrCreated.GAME_CREATED;
                 if (endPointBadResp({ evaluator: isObjectId, value: savedGame._id })) { return; };
+                // update players inGame field
+                const updatedPlayer = await Player.findByIdAndUpdate(playerId, { inGame: savedGame._id })
+                if (endPointBadResp({ evaluator: isPlayer, value: updatedPlayer })) { return; };
                 return resp.status(200).json({ [JOIN_OR_CREATE_GAME]: { [joinedOrCreated]: savedGame._id } });
             }
             break;
 
         case REMOVE_PLAYER_FROM_GAME:
-            const endPointBadResp = pathBadResp({ endPoint: JOIN_OR_CREATE_GAME });
+            const endPointBadResp = pathBadResp({ endPoint: REMOVE_PLAYER_FROM_GAME });
             if (endPointBadResp({ evaluator: isObjectId, value: postData })) { return; };
             const playerId = postData;
             // remove player from all games
-            // TODO end sesesion doesn't removed playes from array
             const games = await Game.find({ players: { $in: playerId } });
             const updatedGameIds = [];
             const deletedGameIds = [];
@@ -92,7 +96,7 @@ export default async function (
                 const isValid = pLength === 1 || pLength === 2
                 if (!isValid) {
                     const deleted = await Game.findByIdAndDelete(g._id);
-                    if (endPointBadResp({ evaluator: '!', value: deleted.acknowledged })) { return; };
+                    if (endPointBadResp({ evaluator: '!', value: deleted })) { return; };
                     deletedGameIds.push(g._id);
                 }
             }
@@ -108,14 +112,9 @@ export default async function (
 async function findOpenGame(attempt = 0): Promise<IGame | null> {
     if (attempt > 3) { throw new Error('there\s a problem finding an open game, check database') }
     const openGame: IGame | null =
-        await Game
-            .findOne<Query<IGame, IGame>>({ isOpen: true })
-
-    // no game avail, make one
+        await Game.findOne<Query<IGame, IGame>>({ isOpen: true })
     if (!openGame) { return null }
-
     const isValid = openGame.players
-        // TODO: standardized isPlayer()
         .filter(playerId => isObjectId(playerId))
         .length === 1;
     if (!isValid) {

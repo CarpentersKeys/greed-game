@@ -5,15 +5,15 @@ import EndSessionButton from '../components/session/endSession';
 import useMutatePlayer from '../hooks/useMutatePlayer';
 import useMutateGame from '../hooks/useMutateGame';
 import useGameState from '../hooks/useGameState';
-import Game from '../components/game/game';
+import Game from '../components/game';
 
 const Home: NextPage = () => {
   // TODO: make a game request with the player ID
   // submit a new player to the server
-  const { newPlayerId, submitNewPlayer, updatePlayerState, deletePlayer, } = useMutatePlayer();
+  const { newPlayerId, submitNewPlayer, updatePlayerState, assignRoles, deletePlayer, } = useMutatePlayer();
   // subscribe to that player for state updates
   const usePlayerStateResult = usePlayerState(newPlayerId);
-  const { newGameId, updateGameState, removePlayerFromGame } = useMutateGame(newPlayerId);
+  const { newGameId, updateGameState, removePlayerFromGame } = useMutateGame(newPlayerId, assignRoles);
   const useGameStateResult = useGameState(newGameId);
   const playerState = usePlayerStateResult.data;
   const gameState = useGameStateResult.data;
@@ -42,6 +42,7 @@ const Home: NextPage = () => {
           updateGameState={updateGameState}
           usePlayerStateResult={usePlayerStateResult}
           updatePlayerState={updatePlayerState}
+          assignRoles={assignRoles}
         />
       }
     </>

@@ -1,7 +1,7 @@
 import { useMutation } from "react-query";
 import { TObjectId } from "../models/typeCheckers";
 import makeMutationFn from "../fetchers/makeMutationFn";
-import { CREATE_PLAYER, DELETE_PLAYER, UPDATE_STATE } from "../lib/famousStrings";
+import { ASSIGN_ROLES, CREATE_PLAYER, DELETE_PLAYER, UPDATE_STATE } from "../lib/famousStrings";
 import { IPlayerUpdate } from "../models/player/types";
 import { useState } from "react";
 
@@ -10,7 +10,6 @@ import { useState } from "react";
  * @param 
  * @returns UseQueryResult<IPlayer>
  */
-
 export default function useMutatePlayer() {
     const [newPlayerId, newPlayerIdSet] = useState<TObjectId | undefined | null>(null);
     const [deletedPlayerId, deletedPlayerIdSet] = useState<TObjectId | undefined | null>(null);
@@ -19,11 +18,12 @@ export default function useMutatePlayer() {
         reset,
         data,
         mutate,
+        mutateAsync,
         ...rest
-    } = useMutation<IUseMutatePlayerReturn, unknown, IUseMutatePlayerFnArgs, unknown>(makeMutationFn('player'),
+    } = useMutation<IMutatePlayerResultData, unknown, IUseMutatePlayerFnArgs, unknown>(makeMutationFn('player'),
         {
             onSuccess(data, variables) {
-                const { [CREATE_PLAYER]: nPI, [DELETE_PLAYER]: dPI, [CREATE_PLAYER]: uPI } = data;
+                const { [CREATE_PLAYER]: nPI, [DELETE_PLAYER]: dPI, [UPDATE_STATE]: uPI } = data;
                 nPI && newPlayerIdSet(nPI);
                 uPI && updatedPlayerIdSet(uPI);
                 if (variables?.endPoint === DELETE_PLAYER) {
@@ -36,14 +36,16 @@ export default function useMutatePlayer() {
     )
     function submitNewPlayer(playerName: string) { mutate({ endPoint: CREATE_PLAYER, postData: playerName }); };
     function deletePlayer(playerId: TObjectId) { mutate({ endPoint: DELETE_PLAYER, postData: playerId }); };
+    function assignRoles(playerId: TObjectId) { mutate({ endPoint: ASSIGN_ROLES, postData: playerId }); };
     function updatePlayerState(update: IPlayerUpdate) { mutate({ endPoint: UPDATE_STATE, postData: update }); };
 
-    return { updatePlayerState, deletePlayer, deletedPlayerId, submitNewPlayer, newPlayerId, updatedPlayerId, ...rest };
+    return { assignRoles, updatePlayerState, deletePlayer, deletedPlayerId, submitNewPlayer, newPlayerId, updatedPlayerId, ...rest };
 };
 
 interface IUseMutatePlayerFnArgs { endPoint: string, postData: any }
-interface IUseMutatePlayerReturn {
-    [CREATE_PLAYER]: TObjectId | undefined,
-    [DELETE_PLAYER]: TObjectId | undefined,
-    [UPDATE_STATE]: TObjectId | undefined,
+export interface IMutatePlayerResultData { // remember, 
+    [UPDATE_STATE]?: TObjectId;
+    [CREATE_PLAYER]?: TObjectId;
+    [DELETE_PLAYER]?: TObjectId;
+    [ASSIGN_ROLES]?: TObjectId[];
 }

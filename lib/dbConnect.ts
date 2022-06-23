@@ -1,6 +1,7 @@
 import { connect, ConnectOptions } from "mongoose";
 
 const MDB_URI: string = (process.env.MDB_URI);
+if (typeof window !== 'undefined') { console.log('mdb', MDB_URI) }
 if (!MDB_URI) {
     throw new Error(
         'please define MDB_URI in the env.local file'

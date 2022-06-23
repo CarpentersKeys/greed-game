@@ -1,22 +1,25 @@
 import { HydratedDocument, UpdateAggregationStage, UpdateQuery } from "mongoose";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { Query } from "react-query";
 import dbConnect from "../../../lib/dbConnect";
-import { CREATE_PLAYER, DELETE_PLAYER, GET_ALL_QUERY, STATE_QUERY, UPDATE_STATE } from "../../../lib/famousStrings";
+import { CREATE_PLAYER, DELETE_PLAYER, GET_ALL_QUERY, STATE_QUERY, UPDATE_STATE, ASSIGN_ROLES } from "../../../lib/famousStrings";
 import { validateTypeAndErrorIfFail } from "../../../lib/validateTypeAndErrorIfFail";
 import { Player } from "../../../models/player/mongoose";
-import { IPlayer } from "../../../models/player/types";
+import { EGameRoles, IPlayer } from "../../../models/player/types";
 import { isObjectId, isPlayer, TObjectId } from "../../../models/typeCheckers";
+
 
 export default async function (
     req: NextApiRequest,
     resp: NextApiResponse<
-        { errorMessage: string }
-        | { [STATE_QUERY]: IPlayer }
-        | { [GET_ALL_QUERY]: IPlayer[] }
-        | { [CREATE_PLAYER]: TObjectId }
-        | { [UPDATE_STATE]: TObjectId }
-        | { [DELETE_PLAYER]: TObjectId }
+        IAPIBadResp
+        // queries
+        | IStateQueryAPIResp
+        | IGetAllQueryAPIRes
+        // mutations
+        | ICreatePlayerAPIResp
+        | IUpdateStateAPIResp
+        | IAssignRolesAPIResp
+        | IDeletePlayerAPIResp
     >
 ) {
     await dbConnect();
@@ -77,10 +80,34 @@ export default async function (
                 const updateResp = await Player.updateOne({ _id: playerId }, update);
                 if (endPointPathBadResp({ evaluator: isGoodPlayerUpdate, value: updateResp })) { return; };
                 const updatedPlayer = await Player.findById(playerId);
-                if (endPointPathBadResp({ evaluator: isPlayer, value: updatedPlayer})) { return; };
+                if (endPointPathBadResp({ evaluator: isPlayer, value: updatedPlayer })) { return; };
                 return resp.status(200).json({ [UPDATE_STATE]: playerId });
             }
             break;
+
+        case ASSIGN_ROLES:
+            {
+                const valueErrorResp = pathBadResp({ endPoint: ASSIGN_ROLES })
+                if (valueErrorResp({ evaluator: isObjectId, value: postData })) { return; };
+                const gameId = postData;
+                const players = await Player.find({ inGame: gameId });
+                if (valueErrorResp({ evaluator: isTwoPlayers, value: players })) { return; };
+                const randOrder = Math.floor(Math.random() + 1.5)
+                const roles = Object.values(EGameRoles);
+                const updatedPlayers = [];
+                for (const i in players) {
+                    const role = roles[(Number(i) + randOrder) % 2]
+                    console.log(role)
+                    const updatedPlayer = await Player.findByIdAndUpdate(players[i]._id, { gameRole: role });
+                    updatedPlayers.push(updatedPlayer);
+                    console.log(updatedPlayer)
+                }
+                if (valueErrorResp({ evaluator: isTwoPlayers, value: updatedPlayers })) { return; };
+                const updatedPlayerIds = updatedPlayers.map(p => p._id)
+                return resp.status(200).json({ [ASSIGN_ROLES]: updatedPlayerIds });
+            };
+            break;
+
         case DELETE_PLAYER:
             {
                 const valueErrorResp = pathBadResp({ endPoint: DELETE_PLAYER })
@@ -101,3 +128,19 @@ function isGoodPlayerUpdate(updateResp: UpdateQuery<IPlayer>) {
     if (!(updateResp?.matchedCount === 1)) { return false; };
     return true;
 }
+
+function isTwoPlayers(arr: unknown[]) {
+    if (arr.length !== 2) { return false; };
+    if (!arr.every(p => isPlayer(p))) { return false; };
+    return true;
+}
+
+export interface IAPIBadResp { errorMessage: string };
+// queries
+export interface IStateQueryAPIResp { [STATE_QUERY]: IPlayer };
+export interface IGetAllQueryAPIRes { [GET_ALL_QUERY]: IPlayer[] };
+// mutations
+export interface ICreatePlayerAPIResp { [CREATE_PLAYER]: TObjectId };
+export interface IUpdateStateAPIResp { [UPDATE_STATE]: TObjectId };
+export interface IAssignRolesAPIResp { [ASSIGN_ROLES]: TObjectId[] };
+export interface IDeletePlayerAPIResp { [DELETE_PLAYER]: TObjectId };
