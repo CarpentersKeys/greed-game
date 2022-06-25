@@ -7,7 +7,7 @@ A game matching two competitors to test their patience and ambition. One player 
 [View Demo](https://github.com/CarpentersKeys/greed-game) · [Report Bug](https://github.com/CarpentersKeys/greed-game/issues)
 
 ## About The Project 
-![AGameofGreed](https://www.dropbox.com/s/ixkscoi0kglavft/greed1.png?dl=0)
+![Image](public/greed1.png)
 
 ([back to top](#top))
 
@@ -32,21 +32,23 @@ npm run dev
 ## Current State
 ### Frontend
 The point is, a user can end a name and the app will send that to the backend. once both player and game state have come back form the back the app renders the Game component. Game is further subdivided into two container components for each of the two game roles. When a player joins a game another has created (meaning there are enough players to start) another call is made to the backend to assign roles at random and alter the game state object to indicate the game is closed.
-#### Future
-The next step is to create a series of conditionally rendered function components in each players' given role for each stage of the game. Picking the time, interupting the running timer, and eventually settling up and deciding if they want to play another round.
+![Image](public/greed2.png)
 ### Datafetching
 React-query is being leveraged to facilitate a statefull and cached approach. This also alleviates the need for many backend routes and react-query's query key provides the server with all the data required to case out each request to correct endpoint. React-query implements hooks both for maintaining the up to date server state (useQuery) and for altering it (useMutation). Both of these are utlized to move from one stage to the next in the game. These hooks provide a lot of powerful options and callback functions which allow for excellent control flow.
+([back to top](#top))
 ### Backend
 Next provides a serverless function API in it's framework. These functions appear very similar to a nodejs express app. There is some initial startup time and they can go dormant so cold starts can occur. Do to the brevity of each game however the decision was made to try it this way rather than implementing an entire custom sever.
 ### Database
 Mongoose provides a client for the MongoDB database. There are a host of different methods to create, read, update, delete the hosted collections. These collections are how server state is maintained across the session. For now a player is erased when they end their session and an empty (or otherwise invalid game) is also cleaned up, but this could easily be changed to persist.
 ### Design 
 Currently this is very bare bones. Mantine design system is used but little to no styling has been applied. 
+## Future
+The next step is to create a series of conditionally rendered function components in each players' given role for each stage of the game. Picking the time, interupting the running timer, and eventually settling up and deciding if they want to play another round.
 
 ([back to top](#top))
 
 ## Roadmap 
-- [ ] Setup game, assign player roles, and maintain state.
+- [x] Setup game, assign player roles, and maintain state.
 - [ ] Game flow, timers, interaction.
 - [ ] Conclusion, iteration.
 
