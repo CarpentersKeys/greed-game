@@ -61,7 +61,6 @@ export default async function (
         // mutations
         case JOIN_OR_CREATE_GAME:
             {
-                console.log(postData)
                 const endPointBadResp = pathBadResp({ endPoint: JOIN_OR_CREATE_GAME });
                 if (endPointBadResp({ evaluator: isObjectId, value: postData })) { return; };
                 const playerId = postData;

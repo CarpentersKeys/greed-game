@@ -1,8 +1,8 @@
 import { useQuery } from "react-query";
-import stateFetch from "../fetchers/stateFetch";
-import { STATE_QUERY } from "../lib/famousStrings";
-import { narrowToGame } from "../models/typeCheckers";
-import { TObjectId } from "../models/typeCheckers";
+import stateFetch from "../../fetchers/stateFetch";
+import { STATE_QUERY } from "../../lib/famousStrings";
+import { isGame } from "../../models/typeCheckers";
+import { TObjectId } from "../../models/typeCheckers";
 
 /**
  * continuously fetches for gameState
@@ -19,11 +19,8 @@ export default function useGameState(gameId: TObjectId | undefined | null) {
             enabled: !!gameId,
             keepPreviousData: !!gameId,
             onSuccess: (data) => {
-                try {
-                    narrowToGame(data);
-                } catch (err) {
-                    console.error(`error in ${USE_GAME_STATE}\nendpoint: ${STATE_QUERY}\ngameId:${JSON.stringify(gameId)}name\n${err}`);
-                }
+                !isGame(data) 
+                && console.error(`error in ${USE_GAME_STATE}\nendpoint: ${STATE_QUERY}\ngameId:${JSON.stringify(gameId)}name\n${data}`);
             },
         }
     );

@@ -1,4 +1,6 @@
 
-export default function TimerContainer() {
 
+export default function TimerPlayer(): JSX.Element {
+
+    return <>Timer!</>
 }

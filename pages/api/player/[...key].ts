@@ -7,7 +7,6 @@ import { Player } from "../../../models/player/mongoose";
 import { EGameRoles, IPlayer } from "../../../models/player/types";
 import { isObjectId, isPlayer, TObjectId } from "../../../models/typeCheckers";
 
-
 export default async function (
     req: NextApiRequest,
     resp: NextApiResponse<
@@ -97,10 +96,8 @@ export default async function (
                 const updatedPlayers = [];
                 for (const i in players) {
                     const role = roles[(Number(i) + randOrder) % 2]
-                    console.log(role)
                     const updatedPlayer = await Player.findByIdAndUpdate(players[i]._id, { gameRole: role });
                     updatedPlayers.push(updatedPlayer);
-                    console.log(updatedPlayer)
                 }
                 if (valueErrorResp({ evaluator: isTwoPlayers, value: updatedPlayers })) { return; };
                 const updatedPlayerIds = updatedPlayers.map(p => p._id)

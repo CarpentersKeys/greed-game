@@ -1,4 +1,8 @@
 
-export default function GreedyContainer() {
 
+const GreedyContainer = () => {
+
+    return <>Greedy!</>
 }
+
+export default GreedyContainer;

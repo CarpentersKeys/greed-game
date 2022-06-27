@@ -1,8 +1,8 @@
 import { QueryKey, useQuery, UseQueryResult } from "react-query";
-import stateFetch from "../fetchers/stateFetch";
-import { STATE_QUERY } from "../lib/famousStrings";
-import { IPlayer } from "../models/player/types";
-import { TObjectId, narrowToPlayer } from "../models/typeCheckers";
+import stateFetch from "../../fetchers/stateFetch";
+import { STATE_QUERY } from "../../lib/famousStrings";
+import { IPlayer } from "../../models/player/types";
+import { TObjectId, narrowToPlayer } from "../../models/typeCheckers";
 
 /**
  * continuously fetches for playerState

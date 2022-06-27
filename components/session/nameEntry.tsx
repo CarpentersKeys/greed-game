@@ -1,20 +1,17 @@
 import { TextInput, Group, Button } from "@mantine/core";
 import { useState } from "react";
-import { TObjectId } from "../../models/typeCheckers";
+import useNewSesssion from "../../hooks/useNewSesssion";
 
-interface INameEntryProps {
-    submitNewPlayer: (name: string) => void;
-}
-
-export default function NameEntry({ submitNewPlayer }: INameEntryProps) {
+export default function NameEntry() {
+    const submitNewSession = useNewSesssion();
     const [name, nameSet] = useState('');
     const [errorMessage, errorMessageSet] = useState<string | null>(null);
 
     function handleSubmitPlayer(e: React.SyntheticEvent) {
         e.preventDefault();
         const isValid = (name.length > 3 ? true : null)
-        if (isValid) {
-            submitNewPlayer(name);
+        if (isValid && submitNewSession) {
+            submitNewSession(name);
             errorMessageSet(null);
         } else {
             errorMessageSet('use a longer name')
