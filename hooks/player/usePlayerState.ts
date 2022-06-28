@@ -1,4 +1,6 @@
+import { useContext } from "react";
 import { QueryKey, useQuery, UseQueryResult } from "react-query";
+import { AppContext } from "../../context/appContext";
 import stateFetch from "../../fetchers/stateFetch";
 import { STATE_QUERY } from "../../lib/famousStrings";
 import { IPlayer } from "../../models/player/types";

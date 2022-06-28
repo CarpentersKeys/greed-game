@@ -4,7 +4,7 @@ import Footer from "./footer"
 import Header from "./header"
 import EndSessionButton from "../session/endSessionButton"
 import DisplayListings from "./displayListings"
-import { AppContext } from "../../context/playerContext"
+import { AppContext } from "../../context/appContext"
 
 export default function Layout({ children }: { children: ReactNode }): JSX.Element {
     const { appState: { playerId } } = useContext(AppContext);

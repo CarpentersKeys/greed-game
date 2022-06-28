@@ -4,11 +4,10 @@ import { useContext, useEffect } from "react";
 import { CREATE_PLAYER } from "../../lib/famousStrings";
 import makeMutationFn from "../../fetchers/makeMutationFn";
 import { useMutation } from "react-query";
-import { AppContext } from "../../context/playerContext";
+import { AppContext } from "../../context/appContext";
 
 export default function useNewPlayer() {
     const { appState, appStateSet } = useContext(AppContext);
-
     const { reset: rstUseNewPlayer, mutate: mutatePlayer, data }
         = useMutation<{ [CREATE_PLAYER]: TObjectId }, unknown, IUseMutatePlayerFnArgs, unknown>(
             makeMutationFn('player'),

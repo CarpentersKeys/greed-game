@@ -1,29 +1,28 @@
 import type { NextPage } from 'next'
-import usePlayerState from '../hooks/player/usePlayerState';
 import NameEntry from '../components/session/nameEntry';
-import useGameState from '../hooks/game/useGameState';
-import Game from '../components/game';
 import React, { useContext, useEffect } from 'react';
-import { AppContext } from '../context/playerContext';
+import { AppContext } from '../context/appContext';
+import { useRouter } from 'next/router';
+import usePlayerState from '../hooks/player/usePlayerState';
+import useGameState from '../hooks/game/useGameState';
 
 const Home: NextPage = () => {
   const { appState: { playerId, gameId } } = useContext(AppContext);
-
-  // subscribe to state updates
-  const usePlayerStateResult = usePlayerState(playerId);
-  const useGameStateResult = useGameState(gameId);
-  const playerState = usePlayerStateResult.data;
-  const gameState = useGameStateResult.data;
+  const { data: playerState } = usePlayerState(playerId);
+  const { data: gameState } = useGameState(gameId);
+  const router = useRouter();
+  console.log('Home stes', playerState, gameState);
+  useEffect(() => {
+    if (playerState?._id && gameState?._id) {
+      router.push('/game')
+    }
+  }, [playerState, gameState])
 
   return (
     <>
       {
-        !playerState && <NameEntry />
-      }
-      {
-        playerState
-        && !gameState?.isOpen
-        && <Game />
+        (!playerState?._id || !gameState?._id)
+        && <NameEntry />
       }
     </>
   )

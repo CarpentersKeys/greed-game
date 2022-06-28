@@ -3,22 +3,16 @@ import type { AppProps } from 'next/app';
 import { MantineProvider } from '@mantine/core';
 import Layout from '../components/layout/layout';
 import { QueryClient, QueryClientProvider, } from 'react-query';
-import { AppContext, IAppState, } from '../context/playerContext';
-import { useEffect, useState } from 'react';
+import {  AppContextProv, } from '../context/appContext';
 
 export const queryClient = new QueryClient();
 
+
 function MyApp({ Component, pageProps }: AppProps) {
-  // TODO: implement a better setter
-  const [appState, appStateSet] = useState<IAppState>({
-    playerId: null,
-    gameId: null,
-    cleanupFns: [],
-  });
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppContext.Provider value={{ appState, appStateSet }}>
+    <AppContextProv>
+      <QueryClientProvider client={queryClient}>
         <MantineProvider
           withGlobalStyles
           withNormalizeCSS
@@ -37,10 +31,8 @@ function MyApp({ Component, pageProps }: AppProps) {
             <Component {...pageProps} />
           </Layout>
         </MantineProvider>
-      </AppContext.Provider>
-
-      {/* }     */}
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </AppContextProv>
   )
 }
 export default MyApp;

@@ -4,7 +4,8 @@ import { useContext, useEffect, useState } from "react";
 import { DELETE_PLAYER, REMOVE_PLAYER_FROM_GAME } from "../lib/famousStrings";
 import makeMutationFn from "../fetchers/makeMutationFn";
 import { useMutation } from "react-query";
-import { AppContext } from "../context/playerContext";
+import { AppContext } from "../context/appContext";
+import { useRouter } from "next/router";
 
 export default function useEndSesssion() {
     // TODO: currently this hook may have problems with reference vs value and closure in the onSuccess callbacks
@@ -37,8 +38,8 @@ export default function useEndSesssion() {
                                 fn();
                             });
                             const copy = { ...appState };
-                            const update = Object.assign(copy, { playerId: null, cleanupFns: [] })
-                            appStateSet(update)
+                            const update = Object.assign(copy, { playerId: null, cleanupFns: [] });
+                            appStateSet(update);
                         }
                     }
                 },

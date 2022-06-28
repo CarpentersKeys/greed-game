@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { JOIN_OR_CREATE_GAME } from "../../lib/famousStrings";
 import makeMutationFn from "../../fetchers/makeMutationFn";
 import { useMutation } from "react-query";
-import { AppContext } from "../../context/playerContext";
+import { AppContext } from "../../context/appContext";
 import { EJoinedOrCreated } from "../../models/game/types";
 
 export default function useNewGame() {
