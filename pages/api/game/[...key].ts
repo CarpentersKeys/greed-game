@@ -4,27 +4,22 @@ import dbConnect from "../../../lib/dbConnect";
 import { validateTypeAndErrorIfFail } from "../../../lib/validateTypeAndErrorIfFail";
 import { Game } from "../../../models/game/mongoose";
 import { IGame } from "../../../models/game/types";
-import { isGame, isObjectId, isPlayer, ObjectId } from "../../../models/typeCheckers";
+import { isGame, isObjectId, isPlayer } from "../../../models/typeCheckers";
 import { TObjectId } from "../../../models/typeCheckers";
 import { STATE_QUERY, REMOVE_PLAYER_FROM_GAME, JOIN_OR_CREATE_GAME, GET_ALL_QUERY } from "../../../lib/famousStrings";
-import { EJoinedOrCreated } from "../../../models/game/types";
 import { Player } from "../../../models/player/mongoose";
-//TODO method to prevent simultaneous joins resulting in more than 2 players in the game
-//TODO when ending session kill all open games
+import { IAPIBadResp } from "../player/[...key]";
+
 export default async function (
     req: NextApiRequest,
     resp: NextApiResponse<
-        { errorMessage: string }
-        // useQuery resps
-        | { [STATE_QUERY]: IGame }
-        | { [GET_ALL_QUERY]: IGame[] }
-        // useMutateGame resps
-        | { [JOIN_OR_CREATE_GAME]: { [EJoinedOrCreated.GAME_CREATED]?: TObjectId, [EJoinedOrCreated.GAME_JOINED]?: TObjectId } }
-        | { [REMOVE_PLAYER_FROM_GAME]: { updatedGameIds: TObjectId[], deletedGameIds: TObjectId[] } }
+        IAPIBadResp
+        | IGame
+        | IGame[]
     >
 ) {
     await dbConnect();
-    const { endPoint, postData } = JSON.parse(req.query.key[0])
+    const { endPoint, id, postData } = JSON.parse(req.query.key[0])
     const pathBadResp = validateTypeAndErrorIfFail({ apiPath: 'game', resp });
 
     switch (endPoint) {
@@ -32,14 +27,13 @@ export default async function (
         case STATE_QUERY:
             {
                 const endPointBadResp = pathBadResp({ endPoint: STATE_QUERY });
-                if (endPointBadResp({ evaluator: isObjectId, value: postData })) { return; };
-                const gameId = postData;
-                const gameState =
-                    await Game.findById(gameId);
-                if (endPointBadResp({ evaluator: isGame, value: gameState })) {
+                if (endPointBadResp({ evaluator: isObjectId, value: id })) { return; };
+                const game =
+                    await Game.findById(id);
+                if (endPointBadResp({ evaluator: isGame, value: game })) {
                     return;
                 };
-                return resp.status(200).json({ [STATE_QUERY]: gameState });
+                return resp.status(200).json(game);
             }
             break;
 
@@ -48,7 +42,6 @@ export default async function (
                 const endPointBadResp = pathBadResp({ endPoint: GET_ALL_QUERY });
                 const games =
                     await Game.find().sort({ updatedAt: -1 });
-
                 if (endPointBadResp({
                     evaluator(games: unknown) {
                         if (!Array.isArray(games)) { return; };
@@ -56,50 +49,47 @@ export default async function (
                     },
                     value: games
                 })) { return; };
-                return resp.status(200).json({ [GET_ALL_QUERY]: games });
+                return resp.status(200).json(games);
             }
         // mutations
         case JOIN_OR_CREATE_GAME:
             {
                 const endPointBadResp = pathBadResp({ endPoint: JOIN_OR_CREATE_GAME });
-                if (endPointBadResp({ evaluator: isObjectId, value: postData })) { return; };
-                const playerId = postData;
+                if (endPointBadResp({ evaluator: isObjectId, value: id })) { return; };
                 // check for open game
                 const openGame = await findOpenGame(); // defined below
                 const closedGame = openGame
-                    ? playerGameAction(playerId, openGame, EPlayerGameAction.JOIN)
-                    : new Game({ players: [playerId], isOpen: true });
+                    ? playerGameAction(id, openGame, EPlayerGameAction.JOIN)
+                    : new Game({ players: [id], isOpen: true });
                 const savedGame = await closedGame.save();
-                const joinedOrCreated = openGame ? EJoinedOrCreated.GAME_JOINED : EJoinedOrCreated.GAME_CREATED;
-                if (endPointBadResp({ evaluator: isObjectId, value: savedGame._id })) { return; };
+                if (endPointBadResp({ evaluator: isGame, value: savedGame })) { return; };
                 // update players inGame field
-                const updatedPlayer = await Player.findByIdAndUpdate(playerId, { inGame: savedGame._id })
+                const updatedPlayer = await Player.findByIdAndUpdate(id, { inGame: savedGame._id })
                 if (endPointBadResp({ evaluator: isPlayer, value: updatedPlayer })) { return; };
-                return resp.status(200).json({ [JOIN_OR_CREATE_GAME]: { [joinedOrCreated]: savedGame._id } });
+                return resp.status(200).json(savedGame);
             }
             break;
 
         case REMOVE_PLAYER_FROM_GAME:
             const endPointBadResp = pathBadResp({ endPoint: REMOVE_PLAYER_FROM_GAME });
-            if (endPointBadResp({ evaluator: isObjectId, value: postData })) { return; };
-            const playerId = postData;
+            if (endPointBadResp({ evaluator: isObjectId, value: id })) { return; };
             // remove player from all games
-            const games = await Game.find({ players: { $in: playerId } });
-            const updatedGameIds = [];
-            const deletedGameIds = [];
+            const games = await Game.find({ players: { $in: id } });
+            const updatedGames = [];
+            const deletedGames = [];
             for (const g of games) {
-                const updated = await playerGameAction(playerId, g, EPlayerGameAction.REMOVE).save();
+                const updated = await playerGameAction(id, g, EPlayerGameAction.REMOVE).save();
                 if (endPointBadResp({ evaluator: '!', value: updated })) { return; };
-                updatedGameIds.push(g._id);
+                updatedGames.push(g);
                 const pLength = g.players.length;
                 const isValid = pLength === 1 || pLength === 2
                 if (!isValid) {
                     const deleted = await Game.findByIdAndDelete(g._id);
                     if (endPointBadResp({ evaluator: '!', value: deleted })) { return; };
-                    deletedGameIds.push(g._id);
+                    deletedGames.push(g);
                 }
             }
-            return resp.status(200).json({ [REMOVE_PLAYER_FROM_GAME]: { updatedGameIds, deletedGameIds } });
+            return resp.status(200).json(deletedGames.concat(updatedGames));
             break;
 
         default:

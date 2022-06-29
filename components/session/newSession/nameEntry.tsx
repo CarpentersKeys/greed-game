@@ -1,23 +1,21 @@
 import { TextInput, Group, Button } from "@mantine/core";
 import { useState } from "react";
-import useNewSesssion from "../../hooks/useNewSesssion";
 
-export default function NameEntry() {
-    const submitNewSession = useNewSesssion();
+export default function ({submitNewPlayer}: {submitNewPlayer: (name: string) => void}) {
+
     const [name, nameSet] = useState('');
     const [errorMessage, errorMessageSet] = useState<string | null>(null);
 
     function handleSubmitPlayer(e: React.SyntheticEvent) {
         e.preventDefault();
         const isValid = (name.length > 3 ? true : null)
-        if (isValid && submitNewSession) {
-            submitNewSession(name);
+        if (isValid && submitNewPlayer) {
+            submitNewPlayer(name);
             errorMessageSet(null);
         } else {
             errorMessageSet('use a longer name')
         }
     }
-
     return (
         <>
             <form onSubmit={handleSubmitPlayer}>

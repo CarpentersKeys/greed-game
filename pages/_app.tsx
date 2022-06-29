@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { MantineProvider } from '@mantine/core';
-import Layout from '../components/layout/layout';
+import Layout from '../components/layout';
 import { QueryClient, QueryClientProvider, } from 'react-query';
 import {  AppContextProv, } from '../context/appContext';
 

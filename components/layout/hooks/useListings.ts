@@ -1,7 +1,7 @@
 import { useQuery } from "react-query";
-import getFetch from "../fetchers/getFetch";
-import { GET_ALL_QUERY } from "../lib/famousStrings";
-import { isGame, isPlayer } from "../models/typeCheckers";
+import getFetch from "../../../fetchers/getFetch";
+import { GET_ALL_QUERY } from "../../../lib/famousStrings";
+import { isGame, isPlayer } from "../../../models/typeCheckers";
 
 export default function useListings() {
 

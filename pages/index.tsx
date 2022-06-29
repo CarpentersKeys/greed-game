@@ -1,32 +1,25 @@
 import type { NextPage } from 'next'
-import NameEntry from '../components/session/nameEntry';
-import React, { useContext, useEffect } from 'react';
-import { AppContext } from '../context/appContext';
 import { useRouter } from 'next/router';
-import usePlayerState from '../hooks/player/usePlayerState';
-import useGameState from '../hooks/game/useGameState';
+import useGameState from '../components/shared/hooks/game/useGameState';
+import usePlayerState from '../components/shared/hooks/player/usePlayerState';
+import NewSession from '../components/session/newSession';
 
 const Home: NextPage = () => {
-  const { appState: { playerId, gameId } } = useContext(AppContext);
-  const { data: playerState } = usePlayerState(playerId);
-  const { data: gameState } = useGameState(gameId);
+  /**
+   * responsible for:
+   *  render name entry 
+   *  redirect to /game when playerId and gameId are set
+   */
   const router = useRouter();
-  console.log('Home stes', playerState, gameState);
-  useEffect(() => {
-    if (playerState?._id && gameState?._id) {
-      router.push('/game')
-    }
-  }, [playerState, gameState])
+  const { playerId } = usePlayerState();
+  useGameState({ onGameId: () => router.push('/game') });
 
   return (
     <>
-      {
-        (!playerState?._id || !gameState?._id)
-        && <NameEntry />
-      }
+      <NewSession />
     </>
   )
 }
-Home.displayName = 'Home'
 
+Home.displayName = 'Home'
 export default Home

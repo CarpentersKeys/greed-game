@@ -1,5 +1,5 @@
 import { Box, Button } from "@mantine/core";
-import useEndSesssion from "../../hooks/useEndSession";
+import useEndSesssion from "./hooks/useEndSession";
 
 export default function EndSessionButton() {
     const endSession = useEndSesssion();

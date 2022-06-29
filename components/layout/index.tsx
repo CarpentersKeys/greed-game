@@ -1,13 +1,13 @@
-import { Box, Group } from "@mantine/core"
+import { Box } from "@mantine/core"
 import { ReactNode, useContext } from "react"
 import Footer from "./footer"
 import Header from "./header"
-import EndSessionButton from "../session/endSessionButton"
+import EndSessionButton from "../session/endSession"
 import DisplayListings from "./displayListings"
-import { AppContext } from "../../context/appContext"
+import { useAppContext } from "../../context/appContext"
 
 export default function Layout({ children }: { children: ReactNode }): JSX.Element {
-    const { appState: { playerId } } = useContext(AppContext);
+    const { playerId } = useAppContext();
 
     return (
         <>

@@ -4,15 +4,10 @@ import { isGame, isPlayer, TObjectId } from "../models/typeCheckers";
 import { STATE_QUERY } from "../lib/famousStrings";
 import { IGame } from "../models/game/types";
 
-export interface IPostObj {
-    endPoint: string;
-    postData: string | TObjectId;
-}
 const STATE_FETCH = 'stateFetch';
 export default async function stateFetch({ queryKey }: { queryKey: QueryKey }):
     Promise<any> { // TODO: HOW CAN I MAKE THIS SATISFY IGame AND IPLayer WITHOUGHT offending the use*State hooks
     const path = queryKey[0];
-
     const postObj = narrowToObj(queryKey[1]);
 
     const urlResp: Response =
@@ -22,9 +17,15 @@ export default async function stateFetch({ queryKey }: { queryKey: QueryKey }):
         throw err
     }
     const jsonResp = await urlResp.json()
-    if (isPlayer(jsonResp?.[STATE_QUERY])) { return jsonResp?.[STATE_QUERY] as IPlayer; };
-    if (isGame(jsonResp?.[STATE_QUERY])) { return jsonResp?.[STATE_QUERY] as IGame; };
+    if (isPlayer(jsonResp)) { return jsonResp as IPlayer; };
+    if (isGame(jsonResp)) { return jsonResp as IGame; };
     throw Error(`${STATE_FETCH} didn't return an IGame or IPlayer`)
+}
+
+export interface IPostObj {
+    endPoint: string;
+    id?: TObjectId;
+    postData?: string | TObjectId;
 }
 
 function narrowToObj(sth: unknown): IPostObj {
@@ -32,7 +33,7 @@ function narrowToObj(sth: unknown): IPostObj {
         if (sth === null || !sth) { throw new Error('input to narrow to object is falsy'); }
         if (typeof sth !== 'object') { throw new Error('input to narrow to object isnt an object'); };
         if (!('endPoint' in sth)) { throw new Error('input to narrow to object is missing endpoint field'); };
-        if (!('postData' in sth)) { throw new Error('input to narrow to object is missing postData field'); };
+        if (!('postData' in sth || 'id' in sth)) { throw new Error('input to narrow to object is missing postData field'); };
         const probably = sth as IPostObj;
         if (typeof probably?.endPoint !== 'string') { throw new Error('input to narrow to objects .endPoint isnt a string'); }
         return probably;

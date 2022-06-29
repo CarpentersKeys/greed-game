@@ -1,28 +1,66 @@
-import { createContext, Dispatch, ReactNode, SetStateAction } from "react";
-import { useAppContext } from "../hooks/useAppContext";
+import { createContext, Dispatch, ReactNode, SetStateAction, useContext } from "react";
 import { TObjectId } from "../models/typeCheckers";
+import { useState } from "react";
 
-export interface IAppState {
-    playerId?: TObjectId | null,
-    gameId?: TObjectId | null,
-    cleanupFns: ((a?: any) => void)[],
-    // TODO specify any
-}
 
-export interface IAppContext {
-    appState: IAppState,
-    appStateSet: Dispatch<SetStateAction<IAppState>> | null
-}
+export const AppContext = createContext<IAppContext | undefined>(undefined);
 
-export const AppContext = createContext<IAppContext>({
-    appState: {
+export const AppContextProv = ({ children }: { children: ReactNode }) => {
+    const [appState, appStateSet] = useState<IAppState>({
         playerId: null,
         gameId: null,
         cleanupFns: [],
-    },
-    appStateSet: null,
-});
+    });
 
-export const AppContextProv = ({ children }: { children: ReactNode }) => {
-  return <AppContext.Provider value={useAppContext()}>{children}</AppContext.Provider>
+    const updateAppState = (update: IAppStateUpdate) => {
+        // update helper so you can just submit the values you want updated
+        appStateSet((prev) => {
+            const copy = { ...prev };
+            copy.cleanupFns = [...copy.cleanupFns];
+            // add new cleanup functions or reset to empty array
+            if (update.cleanupFns === null || update?.cleanupFns === []) {
+                update.cleanupFns = [];
+            } else if (update.cleanupFns instanceof Array) {
+                update.cleanupFns = [...copy.cleanupFns, ...update.cleanupFns];
+            } else if (update?.cleanupFns) {
+                copy.cleanupFns.push(update.cleanupFns);
+            }
+            return Object.assign(copy, update)
+        });
+    }
+
+    const contextVal = {
+        ...appState, appState, updateAppState
+    }
+
+    return <AppContext.Provider value={contextVal}>{children}</AppContext.Provider>
+}
+
+export const useAppContext = () => {
+    const appStateResult = useContext(AppContext);
+    if (appStateResult === undefined) { throw new Error('App context used outside provider') }
+    return (appStateResult);
+}
+
+export interface IAppState {
+    playerId: TObjectId | null,
+    gameId: TObjectId | null,
+    cleanupFns: (() => void)[],
+    // TODO specify any
+}
+
+interface IAppContext {
+    appState: IAppState,
+    playerId: TObjectId | null,
+    gameId: TObjectId | null,
+    cleanupFns: (() => void)[],
+    updateAppState: (update: IAppStateUpdate) => void
+    // TODO specify any
+}
+
+export interface IAppStateUpdate {
+    playerId?: TObjectId | null,
+    gameId?: TObjectId | null,
+    cleanupFns?: (() => void)[] | (() => void),
+    // TODO specify any
 }

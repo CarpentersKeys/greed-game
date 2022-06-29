@@ -1,34 +1,35 @@
-import { TObjectId } from "../../models/typeCheckers";
+import { TObjectId } from "../../../../models/typeCheckers";
 import { useContext } from "react";
-import { JOIN_OR_CREATE_GAME } from "../../lib/famousStrings";
-import makeMutationFn from "../../fetchers/makeMutationFn";
+import { JOIN_OR_CREATE_GAME } from "../../../../lib/famousStrings";
+import makeMutationFn from "../../../../fetchers/makeMutationFn";
 import { useMutation } from "react-query";
-import { AppContext } from "../../context/appContext";
-import { EJoinedOrCreated } from "../../models/game/types";
+import { AppContext, useAppContext } from "../../../../context/appContext";
+import { EJoinedOrCreated } from "../../../../models/game/types";
+import { IPlayer } from "../../../../models/player/types";
 
 export default function useNewGame() {
-    const { appState, appStateSet } = useContext(AppContext);
-    const { reset: rstUseNewGame, mutate: mutateGame }
+    const { appState, updateAppState } = useAppContext();
+    const { reset: rstUseNewGame, mutate: mutateGame, isLoading }
         = useMutation<IUseMutateGameResultData, unknown, IUseMutateGameFnArgs, unknown>(
             makeMutationFn('game'),
             {
                 onSuccess(data) {
                     const { [JOIN_OR_CREATE_GAME]: resultObj } = data;
                     const nGI = resultObj?.[EJoinedOrCreated.GAME_JOINED] || resultObj?.[EJoinedOrCreated.GAME_CREATED]
-                    if (nGI && appStateSet) {
+                    if (nGI && updateAppState) {
                         const update = { ...appState };
                         update.gameId = nGI;
                         update.cleanupFns = [...appState.cleanupFns, rstUseNewGame]
-                        appStateSet(update);
+                        updateAppState(update);
                     }
                 }
             },
         )
-    function joinOrCreateGame(playerId: TObjectId) {
-        mutateGame({ endPoint: JOIN_OR_CREATE_GAME, postData: playerId });
+    function joinOrCreateGame(player: IPlayer) {
+        mutateGame({ endPoint: JOIN_OR_CREATE_GAME, postData: player._id });
     };
 
-    return joinOrCreateGame;
+    return { joinOrCreateGame, gameLoading: isLoading };
 }
 
 interface IUseMutateGameFnArgs { endPoint: string, postData: any }

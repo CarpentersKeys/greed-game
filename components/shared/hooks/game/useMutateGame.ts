@@ -1,8 +1,8 @@
 import { useMutation } from "react-query";
-import makeMutationFn from "../../fetchers/makeMutationFn";
-import { JOIN_OR_CREATE_GAME, REMOVE_PLAYER_FROM_GAME, UPDATE_STATE } from "../../lib/famousStrings";
-import { EJoinedOrCreated, IGameUpdate } from "../../models/game/types";
-import { TObjectId } from "../../models/typeCheckers";
+import makeMutationFn from "../../../../fetchers/makeMutationFn";
+import { JOIN_OR_CREATE_GAME, REMOVE_PLAYER_FROM_GAME, UPDATE_STATE } from "../../../../lib/famousStrings";
+import { EJoinedOrCreated, IGameUpdate } from "../../../../models/game/types";
+import { TObjectId } from "../../../../models/typeCheckers";
 
 export default function useMutateGame(newPlayerId: TObjectId | undefined | null, assignRoles: null | ((a: TObjectId) => void),) {
 

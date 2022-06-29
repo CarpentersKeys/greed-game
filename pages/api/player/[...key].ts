@@ -4,39 +4,36 @@ import dbConnect from "../../../lib/dbConnect";
 import { CREATE_PLAYER, DELETE_PLAYER, GET_ALL_QUERY, STATE_QUERY, UPDATE_STATE, ASSIGN_ROLES } from "../../../lib/famousStrings";
 import { validateTypeAndErrorIfFail } from "../../../lib/validateTypeAndErrorIfFail";
 import { Player } from "../../../models/player/mongoose";
+import { Game } from "../../../models/game/mongoose";
 import { EGameRoles, IPlayer } from "../../../models/player/types";
 import { isObjectId, isPlayer, TObjectId } from "../../../models/typeCheckers";
 
+// endpoints for all player returning requests
+// TODO: move getAll player into it's own route
 export default async function (
     req: NextApiRequest,
     resp: NextApiResponse<
         IAPIBadResp
-        // queries
-        | IStateQueryAPIResp
-        | IGetAllQueryAPIRes
-        // mutations
-        | ICreatePlayerAPIResp
-        | IUpdateStateAPIResp
-        | IAssignRolesAPIResp
-        | IDeletePlayerAPIResp
+        | IPlayer
+        | IPlayer[]
     >
 ) {
     await dbConnect();
-    const { endPoint, postData } = JSON.parse(req.query.key[0])
+    const { endPoint, id, postData } = JSON.parse(req.query.key[0])
     // load endpoint and response object to validation fn
     const pathBadResp = validateTypeAndErrorIfFail({ apiPath: 'player', resp });
 
+    // TODO refactor to if into all endpoints that need id
     switch (endPoint) {
         // queries
         case STATE_QUERY:
             {
                 const valueBadResp = pathBadResp({ endPoint: STATE_QUERY })
-                if (valueBadResp({ evaluator: isObjectId, value: postData })) { return; };
-                const playerId = postData;
-                const playerState =
-                    await Player.findById(playerId);
-                if (valueBadResp({ evaluator: isPlayer, value: playerState })) { return; };
-                return resp.status(200).json({ [STATE_QUERY]: playerState });
+                if (valueBadResp({ evaluator: isObjectId, value: id })) { return; };
+                const player =
+                    await Player.findById(id);
+                if (valueBadResp({ evaluator: isPlayer, value: player })) { return; };
+                return resp.status(200).json(player);
             }
             break;
 
@@ -52,7 +49,7 @@ export default async function (
                     },
                     value: players
                 })) { return; };
-                return resp.status(200).json({ [GET_ALL_QUERY]: players });
+                return resp.status(200).json(players);
             }
             break;
 
@@ -61,36 +58,48 @@ export default async function (
             {
                 // load endpoint into validation function the validate player name
                 const endPointPathBadResp = pathBadResp({ endPoint: CREATE_PLAYER });
+                //TODO: make this more terse
                 if (endPointPathBadResp({ evaluator: (p => !!p && typeof p === 'string'), value: postData })) { return; };
                 const name = postData;
                 const newPlayer: HydratedDocument<IPlayer> = new Player({ name });
                 const savedPlayer = await newPlayer.save();
-                if (endPointPathBadResp({ evaluator: isObjectId, value: savedPlayer?._id })) { return; };
-                return resp.status(200).json({ [CREATE_PLAYER]: savedPlayer._id });
+                if (endPointPathBadResp({ evaluator: isPlayer, value: savedPlayer })) { return; };
+                return resp.status(200).json(savedPlayer);
             }
             break;
 
         case UPDATE_STATE:
             {
                 const endPointPathBadResp = pathBadResp({ endPoint: UPDATE_STATE });
-                if (endPointPathBadResp({ evaluator: isObjectId, value: postData._id })) { return; };
-                const playerId = postData._id;
+                if (endPointPathBadResp({ evaluator: isObjectId, value: id })) { return; };
                 const update = postData;
-                const updateResp = await Player.updateOne({ _id: playerId }, update);
+                // this might break, check shape of update and what mdb expects
+                const updateResp = await Player.updateOne({ _id: id }, update);
                 if (endPointPathBadResp({ evaluator: isGoodPlayerUpdate, value: updateResp })) { return; };
-                const updatedPlayer = await Player.findById(playerId);
+                const updatedPlayer = await Player.findById(id);
                 if (endPointPathBadResp({ evaluator: isPlayer, value: updatedPlayer })) { return; };
-                return resp.status(200).json({ [UPDATE_STATE]: playerId });
+                return resp.status(200).json(updatedPlayer);
             }
             break;
 
         case ASSIGN_ROLES:
             {
                 const valueErrorResp = pathBadResp({ endPoint: ASSIGN_ROLES })
-                if (valueErrorResp({ evaluator: isObjectId, value: postData })) { return; };
-                const gameId = postData;
-                const players = await Player.find({ inGame: gameId });
+                if (valueErrorResp({ evaluator: isObjectId, value: id })) { return; };
+                const playerId = id;
+
+                const game = await Game.findOne({ players: playerId })
+                const playerIds = game?.players;
+                const players = [];
+                for (const pId of playerIds) {
+                    const player = await Player.findById(pId);
+                    if (player._id === playerId && player.gameRole) {
+                        return resp.status(200).json(player);
+                    }
+                    players.push(player);
+                }
                 if (valueErrorResp({ evaluator: isTwoPlayers, value: players })) { return; };
+
                 const randOrder = Math.floor(Math.random() + 1.5)
                 const roles = Object.values(EGameRoles);
                 const updatedPlayers = [];
@@ -100,19 +109,19 @@ export default async function (
                     updatedPlayers.push(updatedPlayer);
                 }
                 if (valueErrorResp({ evaluator: isTwoPlayers, value: updatedPlayers })) { return; };
-                const updatedPlayerIds = updatedPlayers.map(p => p._id)
-                return resp.status(200).json({ [ASSIGN_ROLES]: updatedPlayerIds });
+
+                const player = players.find(p => p._id === playerId);
+                return resp.status(200).json(player);
             };
             break;
 
         case DELETE_PLAYER:
             {
                 const valueErrorResp = pathBadResp({ endPoint: DELETE_PLAYER })
-                if (valueErrorResp({ evaluator: isObjectId, value: postData })) { return; };
-                const playerId = postData;
-                const deletedPlayer = await Player.findByIdAndDelete(playerId);
+                if (valueErrorResp({ evaluator: isObjectId, value: id })) { return; };
+                const deletedPlayer = await Player.findByIdAndDelete(id);
                 if (valueErrorResp({ evaluator: '!', value: deletedPlayer })) { return; };
-                return resp.status(200).json({ [DELETE_PLAYER]: deletedPlayer._id });
+                return resp.status(200).json(deletedPlayer);
             };
             break;
         default:

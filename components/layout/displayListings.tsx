@@ -1,4 +1,4 @@
-import useListings from "../../hooks/useListings";
+import useListings from "./hooks/useListings";
 import { Group } from "@mantine/core";
 import { IPlayer } from "../../models/player/types";
 import { isPlayer } from "../../models/typeCheckers";
