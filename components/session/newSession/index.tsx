@@ -7,12 +7,14 @@ import NameEntry from "./nameEntry";
 
 export default function NewSession() {
     const { submitNewPlayer, playerLoading } = useNewPlayer();
-    const { joinOrCreateGame, gameLoading } = useNewGame();
-    usePlayerState({ onPlayerId: joinOrCreateGame });
+    // const { joinOrCreateGame, gameLoading } = useNewGame();
+    // usePlayerState({ onPlayerId: joinOrCreateGame });
 
     return (
         <>
-            <LoadingOverlay visible={playerLoading || gameLoading}/>
+            <LoadingOverlay visible={playerLoading
+                // || gameLoading
+            } />
             <NameEntry submitNewPlayer={submitNewPlayer} />
         </>
     )

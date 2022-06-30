@@ -1,8 +1,14 @@
-import { Box, Button } from "@mantine/core";
-import useEndSesssion from "./hooks/useEndSession";
+import { Box, Button, LoadingOverlay } from "@mantine/core";
 
 export default function EndSessionButton() {
-    const endSession = useEndSesssion();
+    const { removePlayerFromGame, removalLoading } = useRemovePlayerFromGame();
+    const { deletePlayer, deletionLoading } = useDeletePlayer();
+    useGameState({ onGameIdDrop: deletePlayer });
 
-    return <Box><Button onClick={() => endSession()}>End Session</Button></Box>
+    return (
+        <>
+            <LoadingOverlay visible={deletionLoading || removalLoading} />
+            return <Box><Button onClick={() => removePlayerFromGame()}>End Session</Button></Box>
+        </>
+    )
 }

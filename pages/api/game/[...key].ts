@@ -28,11 +28,10 @@ export default async function (
             {
                 const endPointBadResp = pathBadResp({ endPoint: STATE_QUERY });
                 if (endPointBadResp({ evaluator: isObjectId, value: id })) { return; };
-                const game =
-                    await Game.findById(id);
-                if (endPointBadResp({ evaluator: isGame, value: game })) {
-                    return;
-                };
+
+                const game = await Game.findById(id);
+                if (endPointBadResp({ evaluator: isGame, value: game })) { return; };
+
                 return resp.status(200).json(game);
             }
             break;

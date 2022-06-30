@@ -16,7 +16,7 @@ export const AppContextProv = ({ children }: { children: ReactNode }) => {
         // update helper so you can just submit the values you want updated
         appStateSet((prev) => {
             const copy = { ...prev };
-            copy.cleanupFns = [...copy.cleanupFns];
+            copy.cleanupFns = [copy.cleanupFns].flat();
             // add new cleanup functions or reset to empty array
             if (update.cleanupFns === null || update?.cleanupFns === []) {
                 update.cleanupFns = [];

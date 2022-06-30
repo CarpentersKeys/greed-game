@@ -1,21 +1,21 @@
-import { IUseMutatePlayerFnArgs } from "../../../../hooks/player/useMutatePlayer";
 import { TObjectId } from "../../../../models/typeCheckers";
 import { useContext, useEffect, useRef, useState } from "react";
 import { DELETE_PLAYER, REMOVE_PLAYER_FROM_GAME } from "../../../../lib/famousStrings";
 import makeMutationFn from "../../../../fetchers/makeMutationFn";
 import { useMutation } from "react-query";
-import { useAppContext } from "../../../../context/appContext";
+import { IAppState, useAppContext } from "../../../../context/appContext";
 import { useRouter } from "next/router";
+import { IUseMutatePlayerFnArgs } from "../../../shared/hooks/player/useMutatePlayer";
 
 export default function useEndSesssion() {
     // TODO: currently this hook may have problems with reference vs value and closure in the onSuccess callbacks
-    const { appState, playerId, gameId, cleanupFns, appStateSet } = useAppContext();
+    const { appState, playerId, gameId, cleanupFns, updateAppState } = useAppContext();
     const [endingSession, endingSessionSet] = useState<boolean>(false);
-    const ref = useRef();
+    const ref = useRef<undefined | IAppState>();
     console.log('whenIClick')
     useEffect(() => {
         if (appState !== ref.current) {
-            ref.current = appState
+            ref.current = appState;
             console.log('appState changed')
         }
     }, [appState])
@@ -33,10 +33,7 @@ export default function useEndSesssion() {
                     // abthis
                     if (updateObj && playerId) {
                         console.log('appStateSet: REMOVE conditions passed')
-                        appStateSet((prev) => {
-                            console.log('appStateSet: REMOVE')
-                            return Object.assign({ ...prev }, { gameId: null })
-                        })
+                        updateAppState({ gameId: null });
                         console.log('appStateSet: REMOVE onSuccess useAppContext', gameId)
                         if ((gameId === null) && endingSession) {
                             console.log('appStateSet: REMOVE deletePlayer called')
@@ -62,10 +59,7 @@ export default function useEndSesssion() {
                             cleanupFns?.forEach(fn => {
                                 fn();
                             });
-                            appStateSet((prev) => {
-                                console.log('appStateSet: delete')
-                                return Object.assign({ ...prev }, { playerId: null, cleanupFns: [] })
-                            })
+                            updateAppState({ playerId: null, cleanupFns: [] })
                         }
                     }
                 },

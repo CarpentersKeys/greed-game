@@ -33,11 +33,11 @@ export function isObjectId(sth: unknown): sth is TObjectId {
 }
 
 // TODO why does sth._id fail ts when sth: unknown
-export function isGame(sth: any): sth is IGame{
+export function isGame(sth: any): sth is IGame {
     if (!sth || sth === null) { return false; };
     if (typeof sth !== 'object') { return false; };
     if (!('_id' in sth && 'players' in sth && 'isOpen' in sth && 'type' in sth && 'gameStage' in sth)) { return false; };
-    if (Object.hasOwn(sth, '_id') && !isObjectId(sth._id)) { return false; };
+    if (Object.hasOwn(sth, '_id') && !isObjectId(sth?._id)) { return false; };
     return true;
 }
 
@@ -48,3 +48,13 @@ export function isPlayer(sth: any): sth is IPlayer {
     if (!isObjectId(sth._id)) { return false; };
     return true;
 }
+
+export function returnPlayer(sth: any): IPlayer | boolean {
+    if (!sth || sth === null) { return false; };
+    if (typeof sth !== 'object') { return false; };
+    if (!('_id' in sth && 'type' in sth && 'name' in sth)) { return false; };
+    if (!isObjectId(sth._id)) { return false; };
+    return sth as IPlayer;
+}
+
+
