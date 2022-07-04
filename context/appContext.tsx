@@ -24,7 +24,6 @@ export const AppContextProv = ({ children }: { children: ReactNode }) => {
                 update.cleanupFns = [...copy.cleanupFns, ...update.cleanupFns];
             } else if (update?.cleanupFns) {
                 copy.cleanupFns.push(update.cleanupFns);
-                console.log('cleanup fn non array update')
             }
             return Object.assign(copy, update)
         });

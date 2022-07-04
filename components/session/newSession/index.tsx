@@ -12,7 +12,7 @@ export default function NewSession() {
 
     return (
         <>
-            <LoadingOverlay visible={playerLoading
+            <LoadingOverlay transitionDuration={400} visible={playerLoading
                 || gameLoading
             } />
             <NameEntry submitNewPlayer={submitNewPlayer} />

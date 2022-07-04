@@ -1,5 +1,5 @@
-import { Box } from "@mantine/core"
-import { ReactNode, useContext } from "react"
+import { Box, Navbar } from "@mantine/core"
+import { ReactNode, useContext, useEffect, useMemo, useState } from "react"
 import Footer from "./footer"
 import Header from "./header"
 import EndSessionButton from "../session/endSession"
@@ -14,28 +14,33 @@ export default function Layout({ children }: { children: ReactNode }): JSX.Eleme
             <Box
                 component="main"
                 sx={{
-                    paddingLeft: '2rem',
-                    paddingRight: '2rem',
+                    width: '100dvw'
                 }}
             >
-                {
-                    playerId &&
-                    <EndSessionButton />
-                }
+                <Navbar sx={{
+                    backgroundColor: 'green',
+                    height: '100px',
+                }}>
+                    <Box sx={{
+                    }}>
+                        {
+                            playerId
+                            && <EndSessionButton />
+                        }
+                    </Box>
+                </Navbar>
                 <Box
                     component="main"
                     sx={{
                         minHeight: '100vh',
                         display: 'flex',
                         paddingTop: '2rem',
-                        // paddingBottom: '2rem',
                         flexDirection: 'column',
-                        justifyContent: 'center',
                         alignItems: 'center',
                     }}
                 >
                     <Header />
-                    
+
                     <main>{children}</main>
                     <DisplayListings />
                 </Box>

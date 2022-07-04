@@ -19,7 +19,6 @@ export default function useGameState(
     useEffect(() => {
         if (gameRef.current && !gameId) {
             onGameIdDrop && onGameIdDrop();
-            console.log('game finished!')
             // 1 unload this branch, can't fire again until we get another game
             gameRef.current = false;
         };

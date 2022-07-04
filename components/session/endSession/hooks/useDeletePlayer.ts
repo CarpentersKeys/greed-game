@@ -15,7 +15,6 @@ export default function useDeletePlayer() {
         const player = returnPlayer(data);
         if (!player) { throw new Error(noPlayerErrorString(data, variables, playerId)); };
         if (cleanupFns.length > 0) {
-            console.log(cleanupFns)
             cleanupFns?.forEach(fn => {
                 fn();
             });
