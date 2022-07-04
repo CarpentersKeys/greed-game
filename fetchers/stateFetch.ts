@@ -1,12 +1,11 @@
 import { IPlayer } from "../models/player/types";
 import { QueryKey } from "react-query";
 import { isGame, isPlayer, TObjectId } from "../models/typeCheckers";
-import { STATE_QUERY } from "../lib/famousStrings";
 import { IGame } from "../models/game/types";
 
 const STATE_FETCH = 'stateFetch';
-export default async function stateFetch({ queryKey }: { queryKey: QueryKey }):
-    Promise<any> { // TODO: HOW CAN I MAKE THIS SATISFY IGame AND IPLayer WITHOUGHT offending the use*State hooks
+export default async function stateFetch({ queryKey }: { queryKey: QueryKey }): Promise<any> {
+
     const path = queryKey[0];
     const postObj = narrowToObj(queryKey[1]);
 

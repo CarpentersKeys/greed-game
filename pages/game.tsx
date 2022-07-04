@@ -8,7 +8,7 @@ import usePlayerState from "../components/shared/hooks/player/usePlayerState";
 
 const Game = () => {
     const { gameId, playerId } = useAppContext();
-    const { data: playerState,  } = usePlayerState(playerId);
+    const { playerState } = usePlayerState();
     const router = useRouter();
     useEffect(() => {
         // TODO: fix this garbage and make page change/endSession button disapear at the same time
@@ -19,7 +19,7 @@ const Game = () => {
             // }, 100)
         }
         // return () => { clearTimeout(timer) }
-    }, [gameId, playerId])
+    }, [gameId, playerId, router])
 
     return (
         <>

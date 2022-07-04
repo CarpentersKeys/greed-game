@@ -1,4 +1,4 @@
-import { createContext, Dispatch, ReactNode, SetStateAction, useContext } from "react";
+import { createContext, Dispatch, ReactNode, SetStateAction, useCallback, useContext } from "react";
 import { TObjectId } from "../models/typeCheckers";
 import { useState } from "react";
 
@@ -12,7 +12,7 @@ export const AppContextProv = ({ children }: { children: ReactNode }) => {
         cleanupFns: [],
     });
 
-    const updateAppState = (update: IAppStateUpdate) => {
+    const updateAppState = useCallback((update: IAppStateUpdate) => {
         // update helper so you can just submit the values you want updated
         appStateSet((prev) => {
             const copy = { ...prev };
@@ -20,14 +20,15 @@ export const AppContextProv = ({ children }: { children: ReactNode }) => {
             // add new cleanup functions or reset to empty array
             if (update.cleanupFns === null || update?.cleanupFns === []) {
                 update.cleanupFns = [];
-            } else if (update.cleanupFns instanceof Array) {
+            } else if (Array.isArray(update.cleanupFns)) {
                 update.cleanupFns = [...copy.cleanupFns, ...update.cleanupFns];
             } else if (update?.cleanupFns) {
                 copy.cleanupFns.push(update.cleanupFns);
+                console.log('cleanup fn non array update')
             }
             return Object.assign(copy, update)
         });
-    }
+    }, [appStateSet])
 
     const contextVal = {
         ...appState, appState, updateAppState

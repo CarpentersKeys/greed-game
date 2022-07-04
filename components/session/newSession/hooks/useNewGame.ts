@@ -1,15 +1,20 @@
-import { check, isGame, TObjectId } from "../../../../models/typeCheckers";
-import { useCallback, useContext } from "react";
+import { isGame, returnGame, TObjectId } from "../../../../models/typeCheckers";
+import { useCallback } from "react";
 import { JOIN_OR_CREATE_GAME } from "../../../../lib/famousStrings";
 import makeMutationFn, { IMutationVariables } from "../../../../fetchers/makeMutationFn";
 import { useMutation } from "react-query";
-import { AppContext, IAppStateUpdate, useAppContext } from "../../../../context/appContext";
+import { IAppStateUpdate, useAppContext } from "../../../../context/appContext";
 import { EJoinedOrCreated, IGame } from "../../../../models/game/types";
-import { IPlayer } from "../../../../models/player/types";
 
+const functionName = 'useNewGame';
 export default function useNewGame() {
     const { playerId, updateAppState } = useAppContext();
-    const onSuccess = useCallback(makeOnSucces())
+    const onSuccess = useCallback((data: IGame) => {
+        const game = returnGame(data);
+        if (!game) { throw new Error(`Server did\'nt return a player to ${functionName}. \nData: ${data}`); };
+        updateAppState({ gameId: data._id });
+    }, [updateAppState]
+    )
 
     const { reset: rstUseNewGame, mutate: mutateGame, isLoading: gameLoading }
         = useMutation<IGame, unknown, IMutationVariables, unknown>(
@@ -20,24 +25,4 @@ export default function useNewGame() {
     };
 
     return { joinOrCreateGame, gameLoading };
-}
-
-function makeOnSucces(
-    playerId: TObjectId | null, updateAppState: (a: IAppStateUpdate) => void, cleanupFns: ((a: any) => void)[], functionName?: string
-) {
-    const checkIsGame = check(isGame, JOIN_OR_CREATE_GAME, playerId, functionName)
-    return (
-        function (data: IGame) {
-            checkIsGame(data); // error on fail
-            updateAppState({ gameId: data._id });
-        }
-    )
-}
-
-
-interface IUseMutateGameResultData {
-    [JOIN_OR_CREATE_GAME]?: {
-        [EJoinedOrCreated.GAME_CREATED]?: TObjectId
-        [EJoinedOrCreated.GAME_JOINED]?: TObjectId
-    }
 }

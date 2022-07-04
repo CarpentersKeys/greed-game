@@ -1,7 +1,7 @@
 import { TextInput, Group, Button } from "@mantine/core";
 import { useState } from "react";
 
-export default function ({submitNewPlayer}: {submitNewPlayer: (name: string) => void}) {
+export default function NameEntry({ submitNewPlayer }: { submitNewPlayer: (name: string) => void }) {
 
     const [name, nameSet] = useState('');
     const [errorMessage, errorMessageSet] = useState<string | null>(null);

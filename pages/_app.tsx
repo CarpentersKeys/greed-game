@@ -27,9 +27,9 @@ function MyApp({ Component, pageProps }: AppProps) {
             },
           }}
         >
-          {/* <Layout > */}
+          <Layout >
             <Component {...pageProps} />
-          {/* </Layout> */}
+          </Layout>
         </MantineProvider>
       </QueryClientProvider>
     </AppContextProv>

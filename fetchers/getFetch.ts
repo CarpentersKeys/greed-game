@@ -1,11 +1,10 @@
-import { QueryKey } from "react-query";
+import { QueriesResults, QueryKey } from "react-query";
 import { GET_ALL_QUERY } from "../lib/famousStrings";
 import { IGame } from "../models/game/types";
 import { IPlayer } from "../models/player/types";
 
 //TODO really not an ideal typing scheme
-interface IQueryResults { [GET_ALL_QUERY]: IGame[] | IPlayer[] }
-export default async function getFetch({ queryKey }: { queryKey: QueryKey }): Promise<IQueryResults> {
+export default async function getFetch({ queryKey }: { queryKey: QueryKey }) {
     const path = queryKey[0];
     const postObj = (queryKey[1]);
     if (postObj === null || typeof postObj !== 'object') { throw new Error('get fetch didnt get an object '); };

@@ -10,7 +10,7 @@ import { STATE_QUERY, REMOVE_PLAYER_FROM_GAME, JOIN_OR_CREATE_GAME, GET_ALL_QUER
 import { Player } from "../../../models/player/mongoose";
 import { IAPIBadResp } from "../player/[...key]";
 
-export default async function (
+export default async function apiGameEndpoints(
     req: NextApiRequest,
     resp: NextApiResponse<
         IAPIBadResp
@@ -72,12 +72,13 @@ export default async function (
         case REMOVE_PLAYER_FROM_GAME:
             const endPointBadResp = pathBadResp({ endPoint: REMOVE_PLAYER_FROM_GAME });
             if (endPointBadResp({ evaluator: isObjectId, value: id })) { return; };
+            const playerId = id;
             // remove player from all games
-            const games = await Game.find({ players: { $in: id } });
+            const games = await Game.find({ players: { $in: playerId } });
             const updatedGames = [];
             const deletedGames = [];
             for (const g of games) {
-                const updated = await playerGameAction(id, g, EPlayerGameAction.REMOVE).save();
+                const updated = await playerGameAction(playerId, g, EPlayerGameAction.REMOVE).save();
                 if (endPointBadResp({ evaluator: '!', value: updated })) { return; };
                 updatedGames.push(g);
                 const pLength = g.players.length;
@@ -88,7 +89,10 @@ export default async function (
                     deletedGames.push(g);
                 }
             }
-            return resp.status(200).json(deletedGames.concat(updatedGames));
+            if (games.length > 1) {
+                console.error(`Player of id: ${playerId} was removed from more than one game. ${JSON.stringify({ games })}`)
+            }
+            return resp.status(200).json(games[0]);
             break;
 
         default:

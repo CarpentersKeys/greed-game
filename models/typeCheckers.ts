@@ -2,10 +2,12 @@ import { IPlayer } from "./player/types";
 import { IGame } from "./game/types";
 import mongoose from "mongoose";
 
-export type TObjectId = mongoose.ObjectId;
 export const ObjectId = mongoose.Types.ObjectId;
+export type TObjectId = typeof ObjectId;
+export type TEvaluator<T> = (a: unknown) => T | false
 // TODO: fix this embarassing mess
 
+const id = new ObjectId(32141)
 
 export function narrowToPlayer(sth: unknown): IPlayer {
     if (sth === null || typeof sth !== 'object') {
@@ -41,20 +43,23 @@ export function isGame(sth: any): sth is IGame {
     return true;
 }
 
-export function isPlayer(sth: any): sth is IPlayer {
+export const returnGame: TEvaluator<IGame> = (sth: unknown) => {
+    return isGame(sth) && sth as IGame;
+}
+
+export const isPlayer = (sth: unknown): sth is IPlayer => {
     if (!sth || sth === null) { return false; };
     if (typeof sth !== 'object') { return false; };
     if (!('_id' in sth && 'type' in sth && 'name' in sth)) { return false; };
-    if (!isObjectId(sth._id)) { return false; };
+    if (!isObjectId((sth as IPlayer)._id)) { return false; };
     return true;
 }
 
-export function returnPlayer(sth: any): IPlayer | boolean {
-    if (!sth || sth === null) { return false; };
-    if (typeof sth !== 'object') { return false; };
-    if (!('_id' in sth && 'type' in sth && 'name' in sth)) { return false; };
-    if (!isObjectId(sth._id)) { return false; };
-    return sth as IPlayer;
+export const returnPlayer: TEvaluator<IPlayer> = (sth: unknown) => {
+    return isPlayer(sth) && sth as IPlayer;
 }
 
-
+export function hasSameId(contextId: TObjectId | undefined | null) {
+    const evalu: TEvaluator<boolean> = (data) => contextId === (data as { _id: TObjectId })._id
+    return evalu;
+}

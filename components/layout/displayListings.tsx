@@ -5,7 +5,6 @@ import { isPlayer } from "../../models/typeCheckers";
 
 export default function DisplayListings() {
     const { playersData, gamesData } = useListings();
-
     return (
         <Group>
             <ol>

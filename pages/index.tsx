@@ -10,9 +10,9 @@ const Home: NextPage = () => {
    *  render name entry 
    *  redirect to /game when playerId and gameId are set
    */
-  // const router = useRouter();
-  // const { playerId } = usePlayerState();
-  // useGameState({ onGameId: () => router.push('/game') });
+  const router = useRouter();
+  const { playerId } = usePlayerState();
+  useGameState({ onGameId: () => router.push('/game') });
 
   return (
     <>
@@ -21,5 +21,4 @@ const Home: NextPage = () => {
   )
 }
 
-Home.displayName = 'Home'
 export default Home

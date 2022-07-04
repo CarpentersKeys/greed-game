@@ -35,7 +35,7 @@ export default function Layout({ children }: { children: ReactNode }): JSX.Eleme
                     }}
                 >
                     <Header />
-
+                    
                     <main>{children}</main>
                     <DisplayListings />
                 </Box>

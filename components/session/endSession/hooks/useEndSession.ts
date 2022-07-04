@@ -1,11 +1,10 @@
 import { TObjectId } from "../../../../models/typeCheckers";
 import { useContext, useEffect, useRef, useState } from "react";
 import { DELETE_PLAYER, REMOVE_PLAYER_FROM_GAME } from "../../../../lib/famousStrings";
-import makeMutationFn from "../../../../fetchers/makeMutationFn";
+import makeMutationFn, { IMutationVariables } from "../../../../fetchers/makeMutationFn";
 import { useMutation } from "react-query";
 import { IAppState, useAppContext } from "../../../../context/appContext";
 import { useRouter } from "next/router";
-import { IUseMutatePlayerFnArgs } from "../../../shared/hooks/player/useMutatePlayer";
 
 export default function useEndSesssion() {
     // TODO: currently this hook may have problems with reference vs value and closure in the onSuccess callbacks
@@ -20,7 +19,7 @@ export default function useEndSesssion() {
         }
     }, [appState])
     const { mutate: mutateGame }
-        = useMutation<any, unknown, IUseMutatePlayerFnArgs, unknown>(
+        = useMutation<any, unknown, IMutationVariables, unknown>(
             makeMutationFn('game'),
             {
                 // cannot get updated state during callback
@@ -48,7 +47,7 @@ export default function useEndSesssion() {
 
     console.log('appStateSet: outside useAppContext', gameId)
     const { mutate: mutatePlayer }
-        = useMutation<any, unknown, IUseMutatePlayerFnArgs, unknown>(makeMutationFn('player'),
+        = useMutation<any, unknown, IMutationVariables, unknown>(makeMutationFn('player'),
             {
                 onSuccess({ DELETE_PLAYER }) {
                     console.log('appStateSet: DLETE onSuccess top')

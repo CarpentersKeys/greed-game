@@ -4,29 +4,32 @@ import { useAppContext } from "../../../../context/appContext";
 import makeMutationFn, { IMutationVariables } from "../../../../fetchers/makeMutationFn";
 import { CREATE_PLAYER } from "../../../../lib/famousStrings";
 import { IPlayer } from "../../../../models/player/types";
-import { isPlayer } from "../../../../models/typeCheckers";
+import { returnPlayer } from "../../../../models/typeCheckers";
 import { queryClient } from "../../../../pages/_app";
-import { IUseMutatePlayerFnArgs } from "../../../shared/hooks/player/useMutatePlayer";
-import { validateData } from "../../../shared/useOnSuccess";
+
 
 const functionName = 'useNewPlayer'
+
 export default function useNewPlayer() {
     const { updateAppState } = useAppContext();
 
     const onSuccess = useCallback((data: unknown, variables?: IMutationVariables) => {
-        const player = validateData(isPlayer, { functionName })(data, variables);
+        const player = returnPlayer(data);
+        if (!player) { throw new Error(`Server did\'nt return a player to ${functionName}. \nData: ${data}`); };
         updateAppState({ playerId: player?._id });
         queryClient.setQueriesData('player', player);
-    }, [functionName]);
+    }, [updateAppState]);
 
     const { reset: rstUseNewPlayer, mutate: mutatePlayer, isLoading: playerLoading }
-        = useMutation<IPlayer, unknown, IUseMutatePlayerFnArgs, unknown>(
+        = useMutation<IPlayer, unknown, IMutationVariables, unknown>(
             makeMutationFn('player'),
             {
                 onSuccess
             },
         )
-    useEffect(() => { updateAppState({ cleanupFns: rstUseNewPlayer }); }, [rstUseNewPlayer])
+    useEffect(() => {
+        updateAppState({ cleanupFns: rstUseNewPlayer });
+    }, [rstUseNewPlayer, updateAppState])
 
     function submitNewPlayer(playerName: string) {
         mutatePlayer({ endPoint: CREATE_PLAYER, postData: playerName });

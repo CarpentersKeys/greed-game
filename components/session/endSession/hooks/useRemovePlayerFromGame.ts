@@ -1,27 +1,32 @@
-import { check, isGame, TObjectId } from "../../../../models/typeCheckers";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { DELETE_PLAYER, REMOVE_PLAYER_FROM_GAME } from "../../../../lib/famousStrings";
+import { returnGame } from "../../../../models/typeCheckers";
+import { useCallback } from "react";
+import { REMOVE_PLAYER_FROM_GAME } from "../../../../lib/famousStrings";
 import makeMutationFn, { IMutationVariables } from "../../../../fetchers/makeMutationFn";
 import { useMutation } from "react-query";
-import { IAppState, IAppStateUpdate, useAppContext } from "../../../../context/appContext";
-import { useRouter } from "next/router";
-import { IUseMutatePlayerFnArgs } from "../../../shared/hooks/player/useMutatePlayer";
+import { useAppContext } from "../../../../context/appContext";
 import { IGame } from "../../../../models/game/types";
-import { json } from "stream/consumers";
 
-'useRemovePlayerFromGame'
+const functionName = 'useRemovePlayerFromGame';
 export default function useRemovePlayerFromGame() {
-    const { playerId, cleanupFns, updateAppState } = useAppContext();
-    const onSuccess = useCallback(makeOnSucces(playerId, updateAppState, cleanupFns, arguments.callee.name), [playerId, cleanupFns, updateAppState])
+    const { playerId, updateAppState } = useAppContext();
+    const onSuccess = useCallback((data: unknown, variables: unknown) => {
+        const gameRemovedFrom = returnGame(data);
+        if (!gameRemovedFrom) {
+            throw new Error(`Server did\'nt return a player to ${functionName}. 
+        \nData: ${JSON.stringify(data)}\n mutation variables: ${variables}`);
+        };
+        updateAppState({ gameId: null });
+    }, [updateAppState])
 
-    const { mutate: mutateGame, isLoading: isRemovingPlayerFromGame }
+    const { mutate: mutateGame, isLoading: removalLoading }
         = useMutation<IGame, unknown, IMutationVariables, unknown>(
             makeMutationFn('game'), { onSuccess },
         )
 
-    function removePlayerFromGame(playerId: TObjectId) {
+    const removePlayerFromGame = useCallback(() => {
+        if (!playerId) { throw new Error('tried remove nonexistant player from game') }
         mutateGame({ endPoint: REMOVE_PLAYER_FROM_GAME, id: playerId });
-    };
+    }, [mutateGame, playerId])
 
-    return { removePlayerFromGame, isRemovingPlayerFromGame };
+    return { removePlayerFromGame, removalLoading };
 }

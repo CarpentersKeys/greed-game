@@ -1,35 +1,39 @@
-import { TObjectId } from "../../../../models/typeCheckers";
-import { useContext, useEffect, useRef, useState } from "react";
-import { DELETE_PLAYER, REMOVE_PLAYER_FROM_GAME } from "../../../../lib/famousStrings";
-import makeMutationFn from "../../../../fetchers/makeMutationFn";
+import { useCallback } from "react";
+import { DELETE_PLAYER } from "../../../../lib/famousStrings";
+import makeMutationFn, { IMutationVariables } from "../../../../fetchers/makeMutationFn";
 import { useMutation } from "react-query";
-import { IAppState, useAppContext } from "../../../../context/appContext";
-import { useRouter } from "next/router";
-import { IUseMutatePlayerFnArgs } from "../../../shared/hooks/player/useMutatePlayer";
+import { useAppContext } from "../../../../context/appContext";
+import { IPlayer } from "../../../../models/player/types";
+import { returnPlayer, TObjectId } from "../../../../models/typeCheckers";
 
-export default function useEndSesssion() {
+const functionName = useDeletePlayer;
+
+export default function useDeletePlayer() {
     // TODO: currently this hook may have problems with reference vs value and closure in the onSuccess callbacks
-    const { appState, playerId, gameId, cleanupFns, updateAppState } = useAppContext();
-    const { mutate: mutatePlayer, isloading: deletePlayerLoading }
-        = useMutation<any, unknown, IUseMutatePlayerFnArgs, unknown>(makeMutationFn('player'),
-            {
-                onSuccess({ DELETE_PLAYER }) {
-                    console.log('appStateSet: DLETE onSuccess top')
-                    // abthis
-                    // const { playerId, cleanupFns } = useAppContext();
-                    if (DELETE_PLAYER && playerId && cleanupFns) {
-                        if (cleanupFns.length > 0) {
-                            cleanupFns?.forEach(fn => {
-                                fn();
-                            });
-                            updateAppState({ playerId: null, cleanupFns: [] })
-                        }
-                    }
-                },
-            }
-        )
+    const { playerId, cleanupFns, updateAppState } = useAppContext();
+    const onSuccess = useCallback((data: unknown, variables: unknown) => {
+        const player = returnPlayer(data);
+        if (!player) { throw new Error(noPlayerErrorString(data, variables, playerId)); };
+        if (cleanupFns.length > 0) {
+            console.log(cleanupFns)
+            cleanupFns?.forEach(fn => {
+                fn();
+            });
+            updateAppState({ cleanupFns: [] });
+        };
+        updateAppState({ playerId: null })
+    }, [updateAppState, cleanupFns, playerId,]);
 
-    function deletePlayer(playerId: TObjectId) { mutatePlayer({ endPoint: DELETE_PLAYER, postData: playerId }); };
+    const { mutate: mutatePlayer, isLoading: deletePlayerLoading }
+        = useMutation<IPlayer, unknown, IMutationVariables, unknown>(makeMutationFn('player'), { onSuccess, });
+
+    const deletePlayer = useCallback(() => {
+        if (!playerId) { throw new Error('tried delete nonexistant player') }
+        mutatePlayer({ endPoint: DELETE_PLAYER, id: playerId });
+    }, [mutatePlayer, playerId]);
 
     return { deletePlayer, deletePlayerLoading };
 }
+
+const noPlayerErrorString = (data: unknown, variables: unknown, playerId: TObjectId | null) => `Server did\'nt return a player to ${functionName}
+        \nData: ${data}, \nMutation variables${variables}\n playerId: ${playerId}`
