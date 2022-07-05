@@ -6,6 +6,7 @@ import stateFetch from "../../../../fetchers/stateFetch";
 import { STATE_QUERY } from "../../../../lib/famousStrings";
 import { IGame } from "../../../../models/game/types";
 import { hasSameId, returnGame } from "../../../../models/typeCheckers";
+import usePlayerState from "../player/usePlayerState";
 
 type TDataCb = ((data?: unknown, variables?: IMutationVariables) => void);
 type TDataCbObj = { [index: string]: TDataCb | undefined };
@@ -15,6 +16,7 @@ export default function useGameState(
     { onGameIdDrop, onGameId }: TDataCbObj = {}
 ) {
     const { gameId } = useAppContext();
+    const { playerState } = usePlayerState();
     const gameRef = useRef(false);
     useEffect(() => {
         if (gameRef.current && !gameId) {
@@ -38,11 +40,11 @@ export default function useGameState(
 
     const { data: gameState, isLoading, isError } = useQuery<IGame, unknown, IGame, QueryKey>([
         'game',
-        { endPoint: STATE_QUERY, id: gameId, }
+        { endPoint: STATE_QUERY, id: gameId, postData: playerState?.gameRole || false }
     ], stateFetch,
         {
             enabled: !!gameId,
-            keepPreviousData: !!gameId,
+            keepPreviousData: true,
             onSuccess,
         }
     );

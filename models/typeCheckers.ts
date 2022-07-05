@@ -1,4 +1,4 @@
-import { IPlayer } from "./player/types";
+import { EGameRoles, IPlayer } from "./player/types";
 import { IGame } from "./game/types";
 import mongoose from "mongoose";
 
@@ -62,4 +62,8 @@ export const returnPlayer: TEvaluator<IPlayer> = (sth: unknown) => {
 export function hasSameId(contextId: TObjectId | undefined | null) {
     const evalu: TEvaluator<boolean> = (data) => contextId === (data as { _id: TObjectId })._id
     return evalu;
+}
+
+export function isGameRole(sth: unknown): sth is EGameRoles {
+    return sth === EGameRoles.GREEDY_PLAYER || sth === EGameRoles.TIMER_PLAYER;
 }

@@ -11,9 +11,9 @@ const Home: NextPage = () => {
    *  redirect to /game when playerId and gameId are set
    */
   const router = useRouter();
-  const { playerId } = usePlayerState();
+  const { playerId, playerState } = usePlayerState();
   useGameState({ onGameId: () => router.push('/game') });
-
+// console.log(playerState)
   return (
     <>
       <NewSession />

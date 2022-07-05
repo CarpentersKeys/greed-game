@@ -15,7 +15,7 @@ export const gameSchema: Schema = new Schema<IGame>({
     isOpen: { type: Boolean, default: true, required: true },
     type: { type: String, default: 'Game', immutable: true, required: true },
     //TODO: autoMatch: 
-    roundResults: [roundResultSchema],
+    // roundResults: [roundResultSchema],
     //TODO: ENUM  to types of game stage
     gameStage: { type: String, default: 'matching', required: true },
 }, {

@@ -10,7 +10,7 @@ import { isObjectId, isPlayer, TObjectId } from "../../../models/typeCheckers";
 
 // endpoints for all player returning requests
 // TODO: move getAll player into it's own route
-export default async function (
+export default async function apiPlayerEndpoints(
     req: NextApiRequest,
     resp: NextApiResponse<
         IAPIBadResp
@@ -75,9 +75,9 @@ export default async function (
                 const update = postData;
                 // this might break, check shape of update and what mdb expects
                 const updateResp = await Player.updateOne({ _id: id }, update);
-                if (endPointPathBadResp({ evaluator: isGoodPlayerUpdate, value: updateResp })) { return; };
+                if (endPointPathBadResp<IPlayer>({ evaluator: isGoodUpdate, value: updateResp })) { return; };
                 const updatedPlayer = await Player.findById(id);
-                if (endPointPathBadResp({ evaluator: isPlayer, value: updatedPlayer })) { return; };
+                if (endPointPathBadResp<IPlayer>({ evaluator: isPlayer, value: updatedPlayer })) { return; };
                 return resp.status(200).json(updatedPlayer);
             }
             break;
@@ -93,10 +93,12 @@ export default async function (
                 const players = [];
                 for (const pId of playerIds) {
                     const player = await Player.findById(pId);
-                    if (player._id === playerId && player.gameRole) {
-                        return resp.status(200).json(player);
-                    }
                     players.push(player);
+                }
+                const thisPlayer = players.find(p => p._id === playerId);
+                const hasRoles = players.every(p => p._id === playerId && p.gameRole);
+                if (hasRoles) {
+                    return resp.status(200).json(thisPlayer);
                 }
                 if (valueErrorResp({ evaluator: isTwoPlayers, value: players })) { return; };
 
@@ -109,9 +111,7 @@ export default async function (
                     updatedPlayers.push(updatedPlayer);
                 }
                 if (valueErrorResp({ evaluator: isTwoPlayers, value: updatedPlayers })) { return; };
-
-                const player = players.find(p => p._id === playerId);
-                return resp.status(200).json(player);
+                return resp.status(200).json(thisPlayer);
             };
             break;
 
@@ -129,7 +129,7 @@ export default async function (
     }
 };
 
-function isGoodPlayerUpdate(updateResp: UpdateQuery<IPlayer>) {
+export function isGoodUpdate<T>(updateResp: UpdateQuery<T>) {
     if (!updateResp?.acknowledged) { return false; };
     if (!(updateResp?.matchedCount === 1)) { return false; };
     return true;

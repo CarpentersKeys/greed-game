@@ -4,11 +4,12 @@ import dbConnect from "../../../lib/dbConnect";
 import { validateTypeAndErrorIfFail } from "../../../lib/validateTypeAndErrorIfFail";
 import { Game } from "../../../models/game/mongoose";
 import { IGame } from "../../../models/game/types";
-import { isGame, isObjectId, isPlayer } from "../../../models/typeCheckers";
+import { isGame, isGameRole, isObjectId, isPlayer } from "../../../models/typeCheckers";
 import { TObjectId } from "../../../models/typeCheckers";
-import { STATE_QUERY, REMOVE_PLAYER_FROM_GAME, JOIN_OR_CREATE_GAME, GET_ALL_QUERY } from "../../../lib/famousStrings";
+import { STATE_QUERY, REMOVE_PLAYER_FROM_GAME, JOIN_OR_CREATE_GAME, GET_ALL_QUERY, UPDATE_STATE } from "../../../lib/famousStrings";
 import { Player } from "../../../models/player/mongoose";
-import { IAPIBadResp } from "../player/[...key]";
+import { IAPIBadResp, isGoodUpdate } from "../player/[...key]";
+import { EGameRoles } from "../../../models/player/types";
 
 export default async function apiGameEndpoints(
     req: NextApiRequest,
@@ -28,10 +29,14 @@ export default async function apiGameEndpoints(
             {
                 const endPointBadResp = pathBadResp({ endPoint: STATE_QUERY });
                 if (endPointBadResp({ evaluator: isObjectId, value: id })) { return; };
-
-                const game = await Game.findById(id);
+                // if no gameRole we aren't in a game yet, so don't perform this check
+                if (postData && endPointBadResp({ evaluator: isGameRole, value: postData })) { return; };
+                const gameId = id;
+                const isGreedy = postData === EGameRoles.GREEDY_PLAYER;
+                const game = await Game.findById(gameId);
                 if (endPointBadResp({ evaluator: isGame, value: game })) { return; };
-
+                // don't include the timer value in greedyPlayers' gameState (no cheating!)
+                if (isGreedy) { delete game.timeSet };
                 return resp.status(200).json(game);
             }
             break;
@@ -69,6 +74,22 @@ export default async function apiGameEndpoints(
             }
             break;
 
+        case UPDATE_STATE:
+            {
+                const endPointPathBadResp = pathBadResp({ endPoint: UPDATE_STATE });
+                if (endPointPathBadResp({ evaluator: isObjectId, value: id })) { return; };
+                const update = postData;
+                const gameId = id;
+                // this might break, check shape of update and what mdb expects
+                const updateResp = await Game.updateOne({ _id: gameId}, update);
+                if (endPointPathBadResp<IGame>({ evaluator: isGoodUpdate, value: updateResp })) { return; };
+                const updatedGame= await Game.findById(id);
+                if (endPointPathBadResp<IGame>({ evaluator: isGame, value: updatedGame})) { return; };
+                console.log(updatedGame);
+                return resp.status(200).json(updatedGame);
+            }
+            break;
+
         case REMOVE_PLAYER_FROM_GAME:
             const endPointBadResp = pathBadResp({ endPoint: REMOVE_PLAYER_FROM_GAME });
             if (endPointBadResp({ evaluator: isObjectId, value: id })) { return; };
@@ -77,6 +98,7 @@ export default async function apiGameEndpoints(
             const games = await Game.find({ players: { $in: playerId } });
             const updatedGames = [];
             const deletedGames = [];
+
             for (const g of games) {
                 const updated = await playerGameAction(playerId, g, EPlayerGameAction.REMOVE).save();
                 if (endPointBadResp({ evaluator: '!', value: updated })) { return; };

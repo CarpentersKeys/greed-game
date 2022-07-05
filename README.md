@@ -2,7 +2,7 @@
 
 ### Game of Greed
 
-A game matching two competitors to test their patience and ambition. One player sets a time, the other can interrupt the timer to gain points but the longer they wait the more they get, if time runs out it all goes to the one who set the time. This web app is built using React in TypeScript with React-Query to manage server state. The backend is implemented using multiple Nextjs serverless endpoints connecting to MongoDB with the mongoose gmail. Mantines design system takes care of UI so it's easier to get functionality onto the page.
+A game matching two competitors to test their patience and ambition. One player sets a time, the other can interrupt the timer to gain points but the longer they wait the more they get, if time runs out it all goes to the one who set the time. This web app is built using React in TypeScript with React-Query to manage server state. The backend is implemented using multiple Nextjs serverless endpoints connecting to MongoDB with the mongoose client. Mantines design system takes care of UI so it's easier to get functionality onto the page.
   
 [View Demo](https://github.com/CarpentersKeys/greed-game) · [Report Bug](https://github.com/CarpentersKeys/greed-game/issues)
 

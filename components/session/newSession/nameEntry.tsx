@@ -28,12 +28,6 @@ export default function NameEntry({ submitNewPlayer }: { submitNewPlayer: (name:
                     onChange={e => nameSet(e.target.value)}
                 >
                 </TextInput>
-                {/* <Checkbox
-              mt="md"
-              label='Automatch'
-              {...form.getInputProps('autoMatch', { type: 'checkbox' })}
-              required
-            /> */}
                 <Group position="right" mt="md">
                     <Button type="submit">Find Match</Button>
                 </Group>

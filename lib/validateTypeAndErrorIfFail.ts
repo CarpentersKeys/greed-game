@@ -1,8 +1,8 @@
 import { NextApiResponse } from "next";
 
-interface IParamsTotal {
-    value: unknown,
-    evaluator: string | ((a: unknown | unknown[]) => boolean | undefined),
+interface IParamsTotal<T> {
+    value: T,
+    evaluator: string | ((a: T | T[]) => boolean | undefined),
     apiPath: string,
     endPoint: string,
     resp: NextApiResponse<{ errorMessage: string }>,
@@ -10,26 +10,26 @@ interface IParamsTotal {
 
 interface IParamsPartial {
     value?: unknown,
-    evaluator?: string | ((a: any | any[]) => boolean | undefined),
+    evaluator?: string | ((a: any| any[]) => boolean | undefined),
     apiPath?: string,
     endPoint?: string,
     resp?: NextApiResponse<{ errorMessage: string }>,
 }
 
-export type TValCurry = (params: IParamsPartial) => TValCurry
+export type TValCurry = <T>(params: IParamsPartial) => TValCurry
 
-export function validateTypeAndErrorIfFail(params: IParamsTotal): NextApiResponse | boolean | void;
-export function validateTypeAndErrorIfFail(params: IParamsPartial): TValCurry;
-export function validateTypeAndErrorIfFail(
-    params: IParamsTotal | IParamsPartial): NextApiResponse | boolean | void | TValCurry {
+export function validateTypeAndErrorIfFail<T>(params: IParamsTotal<T>): NextApiResponse | boolean | void;
+export function validateTypeAndErrorIfFail<T>(params: IParamsPartial): TValCurry;
+export function validateTypeAndErrorIfFail<T>(
+    params: IParamsTotal<T> | IParamsPartial): NextApiResponse | boolean | void | TValCurry {
     const { value, evaluator, apiPath, endPoint, resp } = params;
 
     const hasAllParams = ['value', 'evaluator', 'apiPath', 'endPoint', 'resp']
         .every(param => param in params)
     if (!hasAllParams || !resp) {
         // missing params, return our validatorFN loaded with the ones we have so far
-        return ((newParams: IParamsPartial | IParamsTotal) =>
-            validateTypeAndErrorIfFail({ ...newParams, ...params })
+        return ((newParams: IParamsPartial | IParamsTotal<T>) =>
+            validateTypeAndErrorIfFail<T>({ ...newParams, ...params })
         )
     }
 
@@ -39,7 +39,7 @@ export function validateTypeAndErrorIfFail(
         valuation = !value;
     } else if (typeof evaluator === 'function') {
         evalName = evaluator?.name;
-        valuation = !evaluator(value);
+        valuation = !evaluator(value as T);
     };
 
     if (valuation) {

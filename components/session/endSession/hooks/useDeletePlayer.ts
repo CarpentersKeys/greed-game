@@ -18,7 +18,7 @@ export default function useDeletePlayer() {
             cleanupFns?.forEach(fn => {
                 fn();
             });
-            updateAppState({ cleanupFns: [] });
+            updateAppState({ cleanupFns: []});
         };
         updateAppState({ playerId: null })
     }, [updateAppState, cleanupFns, playerId,]);

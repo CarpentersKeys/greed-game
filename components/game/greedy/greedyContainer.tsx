@@ -1,6 +1,7 @@
+import { Dispatch, SetStateAction } from "react";
 
 
-const GreedyContainer = () => {
+const GreedyContainer = ({ loadingSet }: { loadingSet: Dispatch<SetStateAction<boolean>> }) => {
 
     return <>Greedy!</>
 }

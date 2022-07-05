@@ -41,13 +41,13 @@ export default function usePlayerState(
         };
     }, [playerId, onPlayerId, playerRef]);
 
-    const { data: playerState, isLoading, isError } = useQuery<IPlayer, unknown, IPlayer, QueryKey>([
+    const { data: playerState, isLoading, isError} = useQuery<IPlayer, unknown, IPlayer, QueryKey>([
         'player',
         { endPoint: STATE_QUERY, id: playerId, }
     ], stateFetch,
         {
             enabled: !!playerId,
-            keepPreviousData: !!playerId,
+            keepPreviousData: true,
             onSuccess,
         },
     );

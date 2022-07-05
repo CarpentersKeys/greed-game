@@ -1,13 +1,15 @@
-import { Box, Navbar } from "@mantine/core"
+import { Box, Group, Navbar } from "@mantine/core"
 import { ReactNode, useContext, useEffect, useMemo, useState } from "react"
 import Footer from "./footer"
 import Header from "./header"
 import EndSessionButton from "../session/endSession"
 import DisplayListings from "./displayListings"
 import { useAppContext } from "../../context/appContext"
+import PlayerDetails from "./playerDetails"
+import GameDetails from "./gameDetails"
 
 export default function Layout({ children }: { children: ReactNode }): JSX.Element {
-    const { playerId } = useAppContext();
+    const { playerId, gameId } = useAppContext();
 
     return (
         <>
@@ -19,15 +21,15 @@ export default function Layout({ children }: { children: ReactNode }): JSX.Eleme
             >
                 <Navbar sx={{
                     backgroundColor: 'green',
-                    height: '100px',
+                    minHeight: '30px',
+                    height: 'auto'
                 }}>
-                    <Box sx={{
+                    <Group sx={{
                     }}>
-                        {
-                            playerId
-                            && <EndSessionButton />
-                        }
-                    </Box>
+                        {playerId && <EndSessionButton />}
+                        {playerId && <PlayerDetails />}
+                        {gameId && <GameDetails />}
+                    </Group>
                 </Navbar>
                 <Box
                     component="main"

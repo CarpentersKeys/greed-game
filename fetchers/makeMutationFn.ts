@@ -3,7 +3,7 @@ import { TObjectId } from "../models/typeCheckers";
 export interface IMutationVariables<TPostData = any> {
     endPoint: string;
     postData?: TPostData;
-    id?: TObjectId
+    id?: TObjectId | null | undefined
 }
 
 export default function makeMutationFn(path: string) {

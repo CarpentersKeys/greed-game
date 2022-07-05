@@ -7,7 +7,6 @@ import { IPlayer } from "../../../../models/player/types";
 import { returnPlayer } from "../../../../models/typeCheckers";
 import { queryClient } from "../../../../pages/_app";
 
-
 const functionName = 'useNewPlayer'
 
 export default function useNewPlayer() {
@@ -17,14 +16,26 @@ export default function useNewPlayer() {
         const player = returnPlayer(data);
         if (!player) { throw new Error(`Server did\'nt return a player to ${functionName}. \nData: ${data}`); };
         updateAppState({ playerId: player?._id });
-        queryClient.setQueriesData('player', player);
+        queryClient.setQueryData('player', player);
     }, [updateAppState]);
+    const onMutate = useCallback((newPlayer: IMutationVariables) => {
+        const name = newPlayer.postData;
+        const previous = queryClient.getQueryData('player')
+        queryClient.setQueryData('player', { name });
+        return { previous }
+    }, [])
 
     const { reset: rstUseNewPlayer, mutate: mutatePlayer, isLoading: playerLoading }
         = useMutation<IPlayer, unknown, IMutationVariables, unknown>(
             makeMutationFn('player'),
             {
-                onSuccess
+                onSuccess,
+                onMutate,
+                onSettled() { queryClient.invalidateQueries('player') },
+                onError() {
+                    queryClient.setQueryData('player', null)
+                    rstUseNewPlayer();
+                }
             },
         )
     useEffect(() => {
