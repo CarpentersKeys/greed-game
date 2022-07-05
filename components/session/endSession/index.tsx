@@ -11,7 +11,7 @@ export default function EndSessionButton() {
 
     return (
         <>
-            {/* <LoadingOverlay transitionDuration={400} visible={deletePlayerLoading || removalLoading} /> */}
+            <LoadingOverlay transitionDuration={400} visible={deletePlayerLoading || removalLoading} />
             <Box><Button onClick={() => removePlayerFromGame()}>End Session</Button></Box>
         </>
     )

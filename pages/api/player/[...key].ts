@@ -23,6 +23,7 @@ export default async function apiPlayerEndpoints(
     // load endpoint and response object to validation fn
     const pathBadResp = validateTypeAndErrorIfFail({ apiPath: 'player', resp });
 
+    // console.log('santity check', endPoint)
     // TODO refactor to if into all endpoints that need id
     switch (endPoint) {
         // queries
@@ -98,6 +99,7 @@ export default async function apiPlayerEndpoints(
                 const thisPlayer = players.find(p => p._id === playerId);
                 const hasRoles = players.every(p => p._id === playerId && p.gameRole);
                 if (hasRoles) {
+                    console.log('has roels, assign roles', hasRoles)
                     return resp.status(200).json(thisPlayer);
                 }
                 if (valueErrorResp({ evaluator: isTwoPlayers, value: players })) { return; };
@@ -111,7 +113,8 @@ export default async function apiPlayerEndpoints(
                     updatedPlayers.push(updatedPlayer);
                 }
                 if (valueErrorResp({ evaluator: isTwoPlayers, value: updatedPlayers })) { return; };
-                return resp.status(200).json(thisPlayer);
+                const thisUpdatedPlayer = updatedPlayers.find(p => p?._id?.toString() === playerId);
+                return resp.status(200).json(thisUpdatedPlayer);
             };
             break;
 

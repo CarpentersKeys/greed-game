@@ -85,7 +85,6 @@ export default async function apiGameEndpoints(
                 if (endPointPathBadResp<IGame>({ evaluator: isGoodUpdate, value: updateResp })) { return; };
                 const updatedGame= await Game.findById(id);
                 if (endPointPathBadResp<IGame>({ evaluator: isGame, value: updatedGame})) { return; };
-                console.log(updatedGame);
                 return resp.status(200).json(updatedGame);
             }
             break;

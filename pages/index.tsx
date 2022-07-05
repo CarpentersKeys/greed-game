@@ -13,7 +13,6 @@ const Home: NextPage = () => {
   const router = useRouter();
   const { playerId, playerState } = usePlayerState();
   useGameState({ onGameId: () => router.push('/game') });
-// console.log(playerState)
   return (
     <>
       <NewSession />

@@ -19,7 +19,6 @@ export const AppContextProv = ({ children }: { children: ReactNode }) => {
             copy.cleanupFns = [copy.cleanupFns].flat();
             // add new cleanup functions or reset to empty array
             if (update.cleanupFns === null || update?.cleanupFns?.length === 0) {
-                console.log('reach cleanup reset')
                 update.cleanupFns = [];
             } else if (Array.isArray(update.cleanupFns)) {
                 update.cleanupFns = [...copy.cleanupFns, ...update.cleanupFns];

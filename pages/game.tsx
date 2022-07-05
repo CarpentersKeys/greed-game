@@ -19,7 +19,7 @@ const functionName = Game.name;
 
 function Game() {
     useGoHome();
-    const assignmentLoading = useAssignRoles();
+    const { assignmentLoading, assignRoles } = useAssignRoles();
     const { playerState } = usePlayerState();
     const { gameState } = useGameState();
     const { updateGame, updateLoading } = useUpdateGame();
@@ -30,13 +30,28 @@ function Game() {
         [gameStage, updateGame, gameRole])
     const [loading, loadingSet] = useState(false);
 
+    useEffect(() => {
+        gameStage !== EGameStage.MATCHING && (gameState?.players?.length !== 2 || !playerState?.gameRole)
+            && updateGame({ gameStage: EGameStage.MATCHING })
+    },
+        [gameStage, updateGame, gameRole, gameState?.players.length, playerState?.gameRole])
+
+    useEffect(() => {
+        if (!playerState?.gameRole && gameState?.players?.length === 2 && gameState?.gameStage === EGameStage.MATCHING) {
+            console.log('assign called')
+            assignRoles();
+        }
+    }, [playerState, assignRoles, gameState])
+
     return (
         <>
             <LoadingOverlay transitionDuration={500} visible={loading || updateLoading || assignmentLoading} />
             {
                 playerState?.gameRole === EGameRoles.GREEDY_PLAYER
                     ? <GreedyContainer loadingSet={loadingSet} />
-                    : <TimerContainer loadingSet={loadingSet} />
+                    : playerState?.gameRole === EGameRoles.TIMER_PLAYER
+                        ? <TimerContainer loadingSet={loadingSet} />
+                        : null
             }
         </>
     )
@@ -60,7 +75,6 @@ const useAssignRoles = () => {
         if (!player) { throw new Error(`Server did\'nt return a player to ${functionName}. \nData: ${data}`); };
         queryClient.setQueryData('player', data)
         // MAKE ASSIGN ROLES OPTIMISTIC
-        console.log(data)
     }, [])
 
     const { mutate: mutatePlayer, isLoading: assignmentLoading }
@@ -71,13 +85,7 @@ const useAssignRoles = () => {
         mutatePlayer({ endPoint: ASSIGN_ROLES, id: playerId });
     }, [playerId, mutatePlayer]);
 
-    useEffect(() => {
-        if (!playerState?.gameRole && gameState?.players?.length === 2 && gameState?.gameStage === EGameStage.MATCHING) {
-            assignRoles();
-        }
-    }, [playerState, assignRoles, gameState])
-
-    return assignmentLoading;
+    return { assignmentLoading, assignRoles };
 }
 
 export default Game
